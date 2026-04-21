@@ -13,7 +13,7 @@ export default function DecisionPanel({ state, run }: Props) {
   const hasRisk = risks.length > 0;
 
   return (
-    <PanelShell title="Decision" subtitle="Pass/Fail" state={state}>
+    <PanelShell title="Pass / Fail" subtitle="Control outcome" state={state}>
       <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
         {!run && (
           <p className="text-xs text-surface-muted">Awaiting pipeline execution.</p>
