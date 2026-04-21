@@ -49,8 +49,14 @@
 }
 
 html, body, #root {
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
+}
+
+@media (min-width: 1024px) {
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
 }
 
 body {

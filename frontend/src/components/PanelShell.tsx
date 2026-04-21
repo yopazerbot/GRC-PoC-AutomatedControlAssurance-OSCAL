@@ -21,7 +21,7 @@ export function PanelShell({ title, subtitle, state, children, className = "" }:
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       className={[
-        "relative flex flex-col rounded-[12px] bg-surface-800",
+        "relative flex flex-col rounded-[12px] bg-surface-800 min-h-[280px] lg:min-h-0",
         "border transition-all duration-500",
         isActive
           ? "border-accent-cyan/50 ring-2 ring-accent-cyan/30 [box-shadow:0_0_20px_rgba(8,145,178,0.15)]"
@@ -69,7 +69,7 @@ export function PanelShell({ title, subtitle, state, children, className = "" }:
           )}
         </div>
       </header>
-      <div className="flex-1 min-h-0 overflow-auto p-4">{children}</div>
+      <div className="p-4 lg:flex-1 lg:min-h-0 lg:overflow-auto">{children}</div>
     </motion.section>
   );
 }

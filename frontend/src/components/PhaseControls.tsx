@@ -23,7 +23,7 @@ function Kbd({ children }: { children: React.ReactNode }) {
 
 export function PhaseControls({ running, mode, onRun, onPrev, onNext, onReset, canPrev, canNext }: Props) {
   return (
-    <footer className="flex items-center gap-3 px-4 h-10 border-t border-surface-border bg-surface-800 shrink-0 text-xs">
+    <footer className="flex flex-wrap items-center gap-3 px-4 min-h-10 py-2 lg:flex-nowrap lg:h-10 lg:py-0 border-t border-surface-border bg-surface-800 shrink-0 text-xs">
       <button
         onClick={onRun}
         disabled={running}

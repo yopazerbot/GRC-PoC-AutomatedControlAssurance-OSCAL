@@ -78,7 +78,7 @@ export default function App() {
   const pi = pipeline.phaseIndex;
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden">
+    <div className="min-h-screen w-full flex flex-col lg:h-screen lg:w-screen lg:overflow-hidden">
       <Header
         onOpenSettings={() => setSettingsOpen(true)}
         onToggleTheme={() => setIsDark((d) => !d)}
@@ -89,7 +89,7 @@ export default function App() {
       <ScenarioSelector current={selectedMode} onChange={setSelectedMode} />
       <FlowTimeline currentIndex={pi} onJump={pipeline.jumpToPhase} />
 
-      <main className="flex-1 min-h-0 grid grid-cols-4 grid-rows-[1fr_1fr] gap-3 p-3 overflow-hidden">
+      <main className="grid grid-cols-1 gap-3 p-3 lg:flex-1 lg:min-h-0 lg:grid-cols-4 lg:grid-rows-[1fr_1fr] lg:overflow-hidden">
         <ControlPanel state={panelState(0, pi, hasDoneRun)} />
         <EvidencePanel
           state={panelState(1, pi, hasDoneRun)}
