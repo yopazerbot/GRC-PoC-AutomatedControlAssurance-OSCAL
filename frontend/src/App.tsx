@@ -15,7 +15,6 @@ import EvaluationPanel from "./components/EvaluationPanel";
 import OscalResultPanel from "./components/OscalResultPanel";
 import DecisionPanel from "./components/DecisionPanel";
 import { HistoryPanel } from "./components/HistoryPanel";
-import { ExecutivePanel } from "./components/ExecutivePanel";
 import { PhaseControls } from "./components/PhaseControls";
 import SettingsDrawer from "./components/SettingsDrawer";
 
@@ -91,7 +90,7 @@ export default function App() {
       <ScenarioSelector current={selectedMode} onChange={setSelectedMode} />
       <FlowTimeline currentIndex={pi} onJump={pipeline.jumpToPhase} />
 
-      <main className="flex-1 min-h-0 grid grid-cols-4 grid-rows-2 gap-3 p-3 overflow-hidden">
+      <main className="flex-1 min-h-0 grid grid-cols-4 grid-rows-[1fr_1fr] gap-3 p-3 overflow-hidden">
         <ControlPanel state={panelState(0, pi, hasDoneRun)} />
         <EvidencePanel
           state={panelState(1, pi, hasDoneRun)}
@@ -115,10 +114,6 @@ export default function App() {
           runs={pipeline.runs}
           activeRunId={pipeline.currentRun?.run_id ?? null}
           onSelect={pipeline.loadRun}
-        />
-        <ExecutivePanel
-          state={panelState(6, pi, hasDoneRun)}
-          run={pipeline.currentRun}
         />
       </main>
 

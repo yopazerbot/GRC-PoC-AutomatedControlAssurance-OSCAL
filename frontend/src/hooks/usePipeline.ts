@@ -39,9 +39,6 @@ export function usePipeline() {
       await new Promise((r) => setTimeout(r, 250));
 
       setPhaseIndex(5);
-      await new Promise((r) => setTimeout(r, 250));
-
-      setPhaseIndex(6);
       setStage("done");
       setCurrentRun(result);
 
@@ -60,7 +57,7 @@ export function usePipeline() {
       const detail = await fetchRunDetail(runId);
       setCurrentRun(detail);
       setStage("done");
-      setPhaseIndex(6);
+      setPhaseIndex(5);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load run");

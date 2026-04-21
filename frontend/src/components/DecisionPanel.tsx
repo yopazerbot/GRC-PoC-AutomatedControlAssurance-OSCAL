@@ -1,4 +1,4 @@
-import { ShieldCheck, ShieldAlert } from "lucide-react";
+import { ShieldCheck, ShieldAlert, FileCheck, TrendingUp } from "lucide-react";
 import { PanelShell, type PanelState } from "./PanelShell";
 import type { RunDetail } from "../types";
 
@@ -14,29 +14,49 @@ export default function DecisionPanel({ state, run }: Props) {
   const isPass = run?.outcome === "pass";
 
   return (
-    <PanelShell title="Pass / Fail" subtitle="Control outcome" state={state}>
-      <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+    <PanelShell title="Summary" subtitle="Control outcome" state={state}>
+      <div className="flex flex-col gap-4">
         {!run && (
-          <p className="text-sm text-surface-muted">Awaiting pipeline execution.</p>
+          <p className="text-sm text-surface-muted text-center py-4">Awaiting pipeline execution.</p>
         )}
 
         {run && (
           <>
-            {isPass ? (
-              <ShieldCheck className="w-12 h-12 text-accent-emerald" />
-            ) : (
-              <ShieldAlert className="w-12 h-12 text-accent-red" />
-            )}
-
-            <div className={`text-3xl font-black tracking-tight ${isPass ? "text-accent-emerald" : "text-accent-red"}`}>
-              {isPass ? "PASS" : "FAIL"}
+            <div className="flex items-center gap-4">
+              {isPass ? (
+                <ShieldCheck className="w-10 h-10 text-accent-emerald shrink-0" />
+              ) : (
+                <ShieldAlert className="w-10 h-10 text-accent-red shrink-0" />
+              )}
+              <div>
+                <div className={`text-2xl font-black tracking-tight ${isPass ? "text-accent-emerald" : "text-accent-red"}`}>
+                  {isPass ? "PASS" : "FAIL"}
+                </div>
+                <p className="text-sm text-surface-muted leading-relaxed">
+                  {isPass
+                    ? "MFA is enforced for all guest users. Control A.8.5 is satisfied."
+                    : `Control not met. ${run.evaluation?.summary ?? ""}`}
+                </p>
+              </div>
             </div>
 
-            <p className="text-sm text-surface-muted leading-relaxed max-w-xs">
-              {isPass
-                ? "Guest MFA enforcement is active."
-                : run.evaluation?.summary ?? "Control not met."}
-            </p>
+            <div className="flex items-start gap-3 p-3 rounded-md border border-surface-border bg-surface-700/30">
+              <FileCheck className="w-5 h-5 text-accent-cyan shrink-0 mt-0.5" />
+              <p className="text-sm text-surface-muted leading-relaxed">
+                <span className="font-semibold text-surface-text">Evidence: </span>
+                {run.mode === "live" ? "Live Entra ID query" : `Mock ${run.mode.replace("mock-", "")} fixture`}
+                {" · "}OSCAL 1.1.3
+              </p>
+            </div>
+
+            {hasRisk && (
+              <div className="flex items-start gap-3 p-3 rounded-md border border-accent-amber/20 bg-accent-amber/5">
+                <TrendingUp className="w-5 h-5 text-accent-amber shrink-0 mt-0.5" />
+                <p className="text-sm text-surface-text leading-relaxed">
+                  <span className="font-semibold">Action required:</span> Enable MFA policy for guest users and re-run assessment.
+                </p>
+              </div>
+            )}
           </>
         )}
       </div>

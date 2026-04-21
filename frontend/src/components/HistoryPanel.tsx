@@ -46,7 +46,7 @@ function MiniBarChart({ runs, onSelect }: { runs: RunSummary[]; onSelect: (id: s
 
 export function HistoryPanel({ state, runs, activeRunId, onSelect }: Props) {
   return (
-    <PanelShell title="History" subtitle={`${runs.length} runs`} state={state} className="col-span-2">
+    <PanelShell title="History" subtitle={`${runs.length} runs`} state={state} className="col-span-3">
       <div className="flex flex-col gap-3 h-full">
         {runs.length === 0 ? (
           <p className="text-xs text-surface-muted">No runs yet. Execute the pipeline to see history.</p>

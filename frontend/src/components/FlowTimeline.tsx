@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { motion } from "framer-motion";
 
-export const PHASES = ["control", "evidence", "evaluation", "oscal", "decision", "runtime", "executive"] as const;
+export const PHASES = ["control", "evidence", "evaluation", "oscal", "decision", "runtime"] as const;
 export type Phase = (typeof PHASES)[number];
 
 const PHASE_LABELS: Record<Phase, string> = {
@@ -9,9 +9,8 @@ const PHASE_LABELS: Record<Phase, string> = {
   evidence: "Evidence",
   evaluation: "Evaluation",
   oscal: "OSCAL",
-  decision: "Pass/Fail",
+  decision: "Summary",
   runtime: "History",
-  executive: "Assurance",
 };
 
 interface Props {
