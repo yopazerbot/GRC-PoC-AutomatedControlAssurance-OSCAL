@@ -1,4 +1,4 @@
-# GRC Lab — Continuous Compliance, Demonstrated
+# GRC Proof of Concept - Automated Control Assurance using NIST OSCAL
 
 **Prove your security controls work. Automatically. In real time.**
 
