@@ -156,10 +156,6 @@ export function SecurityDialog({ open, onClose }: Props) {
                       Railway containers have an ephemeral filesystem. There is no persistent disk.
                       On every redeploy or restart, all in-memory run history is cleared.
                     </li>
-                    <li>
-                      Set <span className="font-mono">API_TOKEN</span> as a Railway environment variable
-                      to prevent unauthorized API access when the app is publicly reachable.
-                    </li>
                   </ul>
                 </Section>
 
