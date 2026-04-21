@@ -67,13 +67,6 @@ This app is designed to be safe for public deployment where untrusted users supp
 | **Evidence** | All Graph API responses are scrubbed: fields matching `*secret*`, `*password*`, `*token*` are replaced with `[REDACTED]`. |
 | **API** | Optional `API_TOKEN` env var for Bearer auth. Rate limited to 1 concurrent run (HTTP 429). CORS same-origin by default. Path traversal protection on static file serving. |
 | **Container** | Non-root user (UID 1000). No secrets in the image. `.env` excluded via `.dockerignore`. |
-| **Transport** | Railway (or any cloud host) terminates TLS at the edge — credentials encrypted in transit. |
-
-## Railway Deployment
-
-1. Push this repo to GitHub
-2. Create a new project on [Railway](https://railway.app) — it detects the Dockerfile automatically
-3. Set `API_TOKEN` environment variable to require authentication
 
 ## API
 
