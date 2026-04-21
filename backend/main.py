@@ -135,6 +135,12 @@ async def list_runs():
     return run_store.list_summaries()
 
 
+@app.delete("/api/runs")
+async def clear_runs():
+    run_store.clear()
+    return {"status": "ok"}
+
+
 @app.get("/api/runs/{run_id}")
 async def get_run(run_id: str):
     run = run_store.get(run_id)

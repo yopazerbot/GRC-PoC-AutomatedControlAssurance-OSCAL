@@ -1,3 +1,4 @@
+import { Trash2 } from "lucide-react";
 import { PanelShell, type PanelState } from "./PanelShell";
 import type { RunSummary } from "../types";
 
@@ -6,6 +7,7 @@ interface Props {
   runs: RunSummary[];
   activeRunId: string | null;
   onSelect: (runId: string) => void;
+  onClear: () => void;
 }
 
 const BAR_HEIGHT_PX = 56;
@@ -44,7 +46,7 @@ function MiniBarChart({ runs, onSelect }: { runs: RunSummary[]; onSelect: (id: s
   );
 }
 
-export function HistoryPanel({ state, runs, activeRunId, onSelect }: Props) {
+export function HistoryPanel({ state, runs, activeRunId, onSelect, onClear }: Props) {
   return (
     <PanelShell title="History" subtitle={`${runs.length} runs`} state={state} className="col-span-3">
       <div className="flex flex-col gap-3 h-full">
@@ -107,7 +109,7 @@ export function HistoryPanel({ state, runs, activeRunId, onSelect }: Props) {
               </table>
             </div>
 
-            <div className="flex gap-4 text-[10px] text-surface-muted pt-1 border-t border-surface-border shrink-0">
+            <div className="flex items-center gap-4 text-[10px] text-surface-muted pt-1 border-t border-surface-border shrink-0">
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-accent-emerald inline-block" /> Live pass
               </span>
@@ -120,6 +122,13 @@ export function HistoryPanel({ state, runs, activeRunId, onSelect }: Props) {
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-accent-indigo inline-block" /> Mock fail
               </span>
+              <div className="flex-1" />
+              <button
+                onClick={onClear}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border border-surface-border bg-surface-700 hover:bg-surface-600 hover:text-accent-red transition-colors text-[10px] text-surface-muted"
+              >
+                <Trash2 className="w-3 h-3" /> Clear
+              </button>
             </div>
           </>
         )}

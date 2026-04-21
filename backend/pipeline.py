@@ -41,6 +41,9 @@ class RunStore:
         if len(self._runs) > self._max_size:
             self._runs.pop()
 
+    def clear(self) -> None:
+        self._runs.clear()
+
     def list_summaries(self) -> list[dict]:
         return [
             {

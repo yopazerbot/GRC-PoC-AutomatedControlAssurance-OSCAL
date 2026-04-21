@@ -114,6 +114,7 @@ export default function App() {
           runs={pipeline.runs}
           activeRunId={pipeline.currentRun?.run_id ?? null}
           onSelect={pipeline.loadRun}
+          onClear={pipeline.clearHistory}
         />
       </main>
 

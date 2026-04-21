@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import type { Mode, PipelineStage, RunDetail, RunSummary } from "../types";
-import { triggerRun, fetchRuns, fetchRunDetail } from "../api";
+import { triggerRun, fetchRuns, fetchRunDetail, clearRuns as apiClearRuns } from "../api";
 import type { Phase } from "../components/FlowTimeline";
 import { PHASES } from "../components/FlowTimeline";
 
@@ -91,6 +91,17 @@ export function usePipeline() {
     setPhaseIndex((i) => Math.min(PHASES.length - 1, i + 1));
   }, []);
 
+  const clearHistory = useCallback(async () => {
+    try {
+      await apiClearRuns();
+      setRuns([]);
+      setCurrentRun(null);
+      setStage("idle");
+      setPhaseIndex(-1);
+      setError(null);
+    } catch {}
+  }, []);
+
   return {
     stage,
     phaseIndex,
@@ -104,6 +115,7 @@ export function usePipeline() {
     jumpToPhase,
     prevPhase,
     nextPhase,
+    clearHistory,
     isRunning: running.current || !["idle", "done", "error"].includes(stage),
   };
 }

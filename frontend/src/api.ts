@@ -73,6 +73,11 @@ export async function fetchRuns(): Promise<RunSummary[]> {
   return handleResponse(res);
 }
 
+export async function clearRuns(): Promise<void> {
+  const res = await fetch("/api/runs", { method: "DELETE", headers: getHeaders() });
+  await handleResponse(res);
+}
+
 export async function fetchRunDetail(runId: string): Promise<RunDetail> {
   const res = await fetch(`/api/runs/${runId}`, { headers: getHeaders() });
   return handleResponse(res);
