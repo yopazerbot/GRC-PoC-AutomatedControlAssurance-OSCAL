@@ -113,7 +113,7 @@ export default function EvidencePanel({ state, run, error }: Props) {
                   {p.id && (
                     <>
                       <span className="text-surface-muted">id:</span>
-                      <span className="text-surface-text">{p.id.slice(0, 8)}...</span>
+                      <span className="text-surface-text break-all">{p.id}</span>
                     </>
                   )}
                 </div>
