@@ -8,47 +8,62 @@ interface Props {
   onSelect: (runId: string) => void;
 }
 
-export function RuntimePanel({ state, runs, activeRunId, onSelect }: Props) {
+function MiniBarChart({ runs }: { runs: RunSummary[] }) {
+  const displayed = runs.slice(0, 20).reverse();
+  const maxDuration = Math.max(...displayed.map((r) => r.duration_ms), 1);
+
   return (
-    <PanelShell title="Runtime" subtitle={`${runs.length} runs`} state={state} className="col-span-2">
+    <div className="flex items-end gap-[3px] h-16 px-1">
+      {displayed.map((run) => {
+        const height = Math.max(4, (run.duration_ms / maxDuration) * 100);
+        const isPass = run.outcome === "pass";
+        const isMock = run.mode.startsWith("mock");
+        const color = isMock
+          ? isPass ? "bg-accent-blue" : "bg-accent-indigo"
+          : isPass ? "bg-accent-emerald" : "bg-accent-red";
+
+        return (
+          <div
+            key={run.run_id}
+            className="flex-1 min-w-[6px] max-w-[20px] flex flex-col items-center justify-end gap-0.5"
+          >
+            <div
+              className={`w-full rounded-t-sm ${color} transition-all hover:brightness-125 cursor-pointer`}
+              style={{ height: `${height}%` }}
+              title={`${run.mode} · ${run.outcome} · ${run.duration_ms}ms`}
+              onClick={() => {}}
+            />
+          </div>
+        );
+      })}
+      {displayed.length === 0 && (
+        <div className="flex-1 flex items-center justify-center text-[10px] text-surface-muted">
+          No data yet
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function HistoryPanel({ state, runs, activeRunId, onSelect }: Props) {
+  return (
+    <PanelShell title="History" subtitle={`${runs.length} runs`} state={state} className="col-span-2">
       <div className="flex flex-col gap-3 h-full">
         {runs.length === 0 ? (
           <p className="text-xs text-surface-muted">No runs yet. Execute the pipeline to see history.</p>
         ) : (
           <>
-            <div className="flex items-end gap-1.5 overflow-x-auto pb-1">
-              {runs.slice().reverse().map((run) => {
-                const isActive = run.run_id === activeRunId;
-                const isMock = run.mode.startsWith("mock");
-                const isPass = run.outcome === "pass";
-
-                const dotColor = isMock
-                  ? isPass ? "bg-accent-blue" : "bg-accent-indigo"
-                  : isPass ? "bg-accent-emerald" : "bg-accent-red";
-
-                return (
-                  <button
-                    key={run.run_id}
-                    onClick={() => onSelect(run.run_id)}
-                    className={[
-                      "group flex flex-col items-center gap-0.5 transition-all shrink-0",
-                      isActive ? "scale-110" : "hover:scale-105",
-                    ].join(" ")}
-                    title={`${run.mode} · ${run.outcome} · ${new Date(run.timestamp).toLocaleTimeString()}`}
-                  >
-                    <div
-                      className={[
-                        "w-4 h-4 rounded-full transition-all",
-                        dotColor,
-                        isActive ? "ring-2 ring-accent-cyan/50" : "",
-                      ].join(" ")}
-                    />
-                    <span className="text-[9px] text-surface-muted font-mono">
-                      {run.mode.replace("mock-", "m:")}
-                    </span>
-                  </button>
-                );
-              })}
+            <div>
+              <div className="text-[10px] uppercase tracking-wider font-semibold text-surface-muted mb-1">
+                Run duration (ms)
+              </div>
+              <div className="rounded-md border border-surface-border bg-surface-700/30 p-2">
+                <MiniBarChart runs={runs} />
+              </div>
+              <div className="flex justify-between text-[9px] text-surface-muted mt-0.5 px-1">
+                <span>oldest</span>
+                <span>latest</span>
+              </div>
             </div>
 
             <div className="overflow-auto flex-1">

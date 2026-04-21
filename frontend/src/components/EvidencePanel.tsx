@@ -9,21 +9,46 @@ interface Props {
   error: string | null;
 }
 
-const SNIPPET = {
-  title: "Graph API collection",
-  language: "python" as const,
-  lines: [
-    "token = await get_token(tenant, client, secret)",
-    "resp = await client.get(",
-    '  "graph.microsoft.com/v1.0/identity"',
-    '  "/conditionalAccess/policies",',
-    '  headers={"Authorization": f"Bearer {token}"}',
-    ")",
-    "return resp.json()['value']",
-  ],
-  inputs: ["tenant_id", "client_id", "client_secret"],
-  outputs: ["policies[]"],
-};
+function buildSnippet(run: RunDetail | null) {
+  if (!run || run.mode !== "live") {
+    return {
+      title: "Graph API collection",
+      language: "python" as const,
+      lines: [
+        "token = await get_token(tenant, client, secret)",
+        "resp = await client.get(",
+        '  "graph.microsoft.com/v1.0/identity"',
+        '  "/conditionalAccess/policies",',
+        '  headers={"Authorization": f"Bearer {token}"}',
+        ")",
+        "return resp.json()['value']",
+      ],
+      inputs: ["tenant_id", "client_id", "client_secret"],
+      outputs: ["policies[]"],
+    };
+  }
+
+  const policyCount = run.sanitized_evidence?.length ?? 0;
+  const names = run.sanitized_evidence
+    ?.slice(0, 3)
+    .map((p: any) => p.displayName || "unnamed") ?? [];
+
+  return {
+    title: "Live Graph API response",
+    language: "json" as const,
+    lines: [
+      `// ${policyCount} policy(ies) returned from tenant`,
+      `{ "value": [`,
+      ...names.map((n, i) =>
+        `  { "displayName": "${n}"${i < names.length - 1 ? "," : ""}`
+      ),
+      policyCount > 3 ? `    // +${policyCount - 3} more...` : "",
+      `] }`,
+    ].filter(Boolean),
+    inputs: ["tenant_id", "client_id"],
+    outputs: [`${policyCount} policies`],
+  };
+}
 
 export default function EvidencePanel({ state, run, error }: Props) {
   const [expanded, setExpanded] = useState(false);
@@ -59,6 +84,9 @@ export default function EvidencePanel({ state, run, error }: Props) {
             <div className="text-xs">
               <span className="text-surface-muted">Policies found:</span>{" "}
               <span className="font-mono font-semibold">{run.sanitized_evidence.length}</span>
+              {run.mode === "live" && (
+                <span className="ml-2 text-[10px] text-accent-cyan font-mono">LIVE</span>
+              )}
             </div>
             {run.sanitized_evidence.map((p: any, i: number) => (
               <div key={i} className="rounded-md border border-surface-border bg-surface-700/60 p-3">
@@ -91,7 +119,7 @@ export default function EvidencePanel({ state, run, error }: Props) {
           </>
         )}
 
-        <CodeSnippet snippet={SNIPPET} />
+        <CodeSnippet snippet={buildSnippet(run)} />
       </div>
     </PanelShell>
   );

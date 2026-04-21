@@ -4,18 +4,9 @@ import { triggerRun, fetchRuns, fetchRunDetail } from "../api";
 import type { Phase } from "../components/FlowTimeline";
 import { PHASES } from "../components/FlowTimeline";
 
-const STAGE_TO_PHASE_INDEX: Record<PipelineStage, number> = {
-  idle: -1,
-  collect: 1,
-  evaluate: 2,
-  generate: 3,
-  done: 6,
-  error: -1,
-};
-
 export function usePipeline() {
   const [stage, setStage] = useState<PipelineStage>("idle");
-  const [phaseIndex, setPhaseIndex] = useState(0);
+  const [phaseIndex, setPhaseIndex] = useState(-1);
   const [currentRun, setCurrentRun] = useState<RunDetail | null>(null);
   const [runs, setRuns] = useState<RunSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -28,21 +19,30 @@ export function usePipeline() {
     setCurrentRun(null);
 
     try {
+      setPhaseIndex(0);
       setStage("collect");
+      await new Promise((r) => setTimeout(r, 350));
+
       setPhaseIndex(1);
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 350));
 
       setStage("evaluate");
       setPhaseIndex(2);
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 350));
 
       setStage("generate");
       setPhaseIndex(3);
 
       const result = await triggerRun(mode);
 
-      setStage("done");
       setPhaseIndex(4);
+      await new Promise((r) => setTimeout(r, 250));
+
+      setPhaseIndex(5);
+      await new Promise((r) => setTimeout(r, 250));
+
+      setPhaseIndex(6);
+      setStage("done");
       setCurrentRun(result);
 
       const updatedRuns = await fetchRuns();
@@ -60,7 +60,7 @@ export function usePipeline() {
       const detail = await fetchRunDetail(runId);
       setCurrentRun(detail);
       setStage("done");
-      setPhaseIndex(4);
+      setPhaseIndex(6);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load run");
@@ -76,7 +76,7 @@ export function usePipeline() {
 
   const reset = useCallback(() => {
     setStage("idle");
-    setPhaseIndex(0);
+    setPhaseIndex(-1);
     setCurrentRun(null);
     setError(null);
   }, []);

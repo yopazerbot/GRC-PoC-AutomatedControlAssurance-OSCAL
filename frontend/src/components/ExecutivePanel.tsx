@@ -1,88 +1,85 @@
-import { useEffect, useState } from "react";
 import { PanelShell, type PanelState } from "./PanelShell";
-import type { ArtifactMeta, RunDetail } from "../types";
-import { fetchArtifacts } from "../api";
+import { StatusBadge } from "./StatusBadge";
+import type { RunDetail } from "../types";
 
 interface Props {
   state: PanelState;
   run: RunDetail | null;
 }
 
-const CHAIN = [
-  { label: "Catalog", type: "catalog" },
-  { label: "Profile", type: "profile" },
-  { label: "SSP", type: "ssp" },
-  { label: "Assessment Plan", type: "assessment-plan" },
-  { label: "Assessment Results", type: "assessment-results" },
-];
-
 export function ExecutivePanel({ state, run }: Props) {
-  const [artifacts, setArtifacts] = useState<ArtifactMeta[]>([]);
-
-  useEffect(() => {
-    fetchArtifacts().then(setArtifacts).catch(() => {});
-  }, []);
-
-  const resultUuid = run
-    ? (run.assessment_results as any)?.["assessment-results"]?.uuid
-    : null;
+  const results = run?.assessment_results as any;
+  const risks = results?.["assessment-results"]?.results?.[0]?.risks ?? [];
+  const hasRisk = risks.length > 0;
 
   return (
-    <PanelShell title="Executive" subtitle="OSCAL trace" state={state}>
+    <PanelShell title="Assurance Summary" subtitle="Leadership view" state={state}>
       <div className="flex flex-col gap-3">
-        <div className="text-[11px] uppercase tracking-wider font-semibold text-surface-text">
-          Traceability chain
-        </div>
-
-        <div className="flex flex-col gap-0.5">
-          {CHAIN.map((item, i) => {
-            const artifact = artifacts.find((a) => a.type === item.type);
-            const uuid = item.type === "assessment-results" ? resultUuid : artifact?.uuid;
-            const hasData = item.type === "assessment-results" ? !!run : !!artifact;
-
-            return (
-              <div key={item.type}>
-                <div
-                  className={[
-                    "flex items-center gap-2 p-2 rounded-md text-xs transition-colors",
-                    hasData ? "text-surface-text" : "text-surface-muted",
-                  ].join(" ")}
-                >
-                  <div
-                    className={[
-                      "w-2 h-2 rounded-full shrink-0 transition-colors",
-                      hasData ? "bg-accent-emerald" : "bg-surface-600",
-                    ].join(" ")}
-                  />
-                  <span className="font-medium">{item.label}</span>
-                  {uuid && (
-                    <span className="text-[10px] font-mono text-surface-muted ml-auto">
-                      {uuid.slice(0, 8)}...
-                    </span>
-                  )}
-                </div>
-                {i < CHAIN.length - 1 && (
-                  <div className="ml-[11px] h-3 border-l border-surface-border" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {run && (
-          <div className="rounded-md border border-surface-border bg-surface-700/60 p-3 mt-auto">
-            <div className="text-[10px] uppercase tracking-wider font-semibold text-surface-muted mb-1">
-              Summary
-            </div>
-            <p className="text-xs text-surface-text leading-relaxed">
-              {run.evaluation?.summary}
-            </p>
-          </div>
+        {!run && (
+          <p className="text-xs text-surface-muted">
+            Run the pipeline to generate an assurance summary for leadership review.
+          </p>
         )}
 
-        <div className="text-[10px] text-surface-muted">
-          End-to-end OSCAL traceability chain
-        </div>
+        {run && (
+          <>
+            <div className="rounded-md border border-surface-border bg-surface-700/30 p-3">
+              <div className="text-[10px] uppercase tracking-wider font-semibold text-surface-muted mb-2">
+                Control status
+              </div>
+              <div className="flex items-center gap-2">
+                <StatusBadge
+                  kind="status"
+                  value={run.outcome === "pass" ? "PASS" : "FAIL"}
+                  size="lg"
+                />
+                <StatusBadge
+                  kind="risk"
+                  value={hasRisk ? "HIGH" : "LOW"}
+                  size="md"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-md border border-surface-border bg-surface-700/30 p-3">
+              <div className="text-[10px] uppercase tracking-wider font-semibold text-surface-muted mb-1">
+                Assurance statement
+              </div>
+              <p className="text-xs text-surface-text leading-relaxed">
+                {run.outcome === "pass"
+                  ? "Multi-factor authentication is enforced for all guest and external users accessing tenant resources via Conditional Access. The organisation meets the requirements of ISO 27001:2022 Annex A 8.5 for this control scope."
+                  : `The control objective is not currently met. ${run.evaluation?.summary ?? ""} Remediation is required before this control can be marked as compliant.`}
+              </p>
+            </div>
+
+            <div className="rounded-md border border-surface-border bg-surface-700/30 p-3">
+              <div className="text-[10px] uppercase tracking-wider font-semibold text-surface-muted mb-1">
+                Evidence basis
+              </div>
+              <p className="text-xs text-surface-muted leading-relaxed">
+                Assessment performed via{" "}
+                {run.mode === "live"
+                  ? "live query of Microsoft Entra ID Conditional Access policies through Microsoft Graph API"
+                  : `simulated ${run.mode.replace("mock-", "")} scenario using mock fixture data`}
+                . Results documented in OSCAL 1.1.3 Assessment Results format with full traceability to
+                the control catalog, profile, and system security plan.
+              </p>
+            </div>
+
+            {hasRisk && (
+              <div className="rounded-md border border-accent-red/30 bg-accent-red/5 p-3">
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-accent-red mb-1">
+                  Recommended action
+                </div>
+                <p className="text-xs text-surface-text leading-relaxed">
+                  Enable the Conditional Access policy requiring MFA for guest users, or create a new policy
+                  targeting guest and external user types with MFA as a required grant control. Re-run this
+                  assessment to confirm remediation.
+                </p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </PanelShell>
   );

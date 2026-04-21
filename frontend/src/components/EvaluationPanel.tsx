@@ -8,20 +8,41 @@ interface Props {
   run: RunDetail | null;
 }
 
-const SNIPPET = {
-  title: "evaluation logic",
-  language: "python" as const,
-  lines: [
-    "for policy in policies:",
-    "  if not targets_guests(policy): continue",
-    "  if policy['state'] != 'enabled': fail()",
-    "  if 'mfa' not in grant_controls: fail()",
-    "  return PASS",
-    "return FAIL  # no qualifying policy",
-  ],
-  inputs: ["policies[]"],
-  outputs: ["evaluation_result"],
-};
+function buildSnippet(run: RunDetail | null) {
+  if (!run || run.mode !== "live") {
+    return {
+      title: "evaluation logic",
+      language: "python" as const,
+      lines: [
+        "for policy in policies:",
+        "  if not targets_guests(policy): continue",
+        "  if policy['state'] != 'enabled': fail()",
+        "  if 'mfa' not in grant_controls: fail()",
+        "  return PASS",
+        "return FAIL  # no qualifying policy",
+      ],
+      inputs: ["policies[]"],
+      outputs: ["evaluation_result"],
+    };
+  }
+
+  const criteria = run.evaluation?.criteria ?? [];
+  return {
+    title: "Live evaluation results",
+    language: "json" as const,
+    lines: [
+      `{ "passed": ${run.evaluation?.passed},`,
+      `  "criteria": [`,
+      ...criteria.map((c, i) =>
+        `    { "${c.name}": ${c.passed} }${i < criteria.length - 1 ? "," : ""}`
+      ),
+      `  ],`,
+      `  "summary": "${run.evaluation?.summary?.slice(0, 50)}..." }`,
+    ],
+    inputs: [`${run.sanitized_evidence?.length ?? 0} policies`],
+    outputs: [run.evaluation?.passed ? "PASS" : "FAIL"],
+  };
+}
 
 export default function EvaluationPanel({ state, run }: Props) {
   return (
@@ -64,7 +85,7 @@ export default function EvaluationPanel({ state, run }: Props) {
           </div>
         )}
 
-        <CodeSnippet snippet={SNIPPET} />
+        <CodeSnippet snippet={buildSnippet(run)} />
       </div>
     </PanelShell>
   );

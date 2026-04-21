@@ -3,6 +3,7 @@ import type { Mode } from "./types";
 import type { PanelState } from "./components/PanelShell";
 import { PHASES } from "./components/FlowTimeline";
 import { usePipeline } from "./hooks/usePipeline";
+import { hasCredentials } from "./api";
 import Header from "./components/Header";
 import { PublicDemoBanner } from "./components/PublicDemoBanner";
 import { OrgContext } from "./components/OrgContext";
@@ -13,7 +14,7 @@ import EvidencePanel from "./components/EvidencePanel";
 import EvaluationPanel from "./components/EvaluationPanel";
 import OscalResultPanel from "./components/OscalResultPanel";
 import DecisionPanel from "./components/DecisionPanel";
-import { RuntimePanel } from "./components/RuntimePanel";
+import { HistoryPanel } from "./components/HistoryPanel";
 import { ExecutivePanel } from "./components/ExecutivePanel";
 import { PhaseControls } from "./components/PhaseControls";
 import SettingsDrawer from "./components/SettingsDrawer";
@@ -30,7 +31,7 @@ function panelState(panelPhaseIndex: number, currentPhaseIndex: number, hasDoneR
 export default function App() {
   const [isDark, setIsDark] = useState(() => {
     const stored = localStorage.getItem(THEME_KEY);
-    return stored ? stored === "dark" : true;
+    return stored ? stored === "dark" : false;
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedMode, setSelectedMode] = useState<Mode>("mock-pass");
@@ -46,6 +47,13 @@ export default function App() {
   useEffect(() => {
     pipeline.refreshRuns();
     fetch("/api/health").then((r) => setApiOk(r.ok)).catch(() => setApiOk(false));
+  }, []);
+
+  const handleSettingsClose = useCallback(() => {
+    setSettingsOpen(false);
+    if (hasCredentials()) {
+      setSelectedMode("live");
+    }
   }, []);
 
   const handleRun = useCallback(() => {
@@ -102,7 +110,7 @@ export default function App() {
           state={panelState(4, pi, hasDoneRun)}
           run={pipeline.currentRun}
         />
-        <RuntimePanel
+        <HistoryPanel
           state={panelState(5, pi, hasDoneRun)}
           runs={pipeline.runs}
           activeRunId={pipeline.currentRun?.run_id ?? null}
@@ -125,7 +133,7 @@ export default function App() {
         canNext={pi < PHASES.length - 1}
       />
 
-      <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsDrawer open={settingsOpen} onClose={handleSettingsClose} />
     </div>
   );
 }

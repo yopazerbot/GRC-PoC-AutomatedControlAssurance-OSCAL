@@ -10,8 +10,8 @@ const PHASE_LABELS: Record<Phase, string> = {
   evaluation: "Evaluation",
   oscal: "OSCAL",
   decision: "Pass/Fail",
-  runtime: "Runtime",
-  executive: "Executive",
+  runtime: "History",
+  executive: "Assurance",
 };
 
 interface Props {
