@@ -1,3 +1,4 @@
+import { ShieldCheck, ShieldAlert } from "lucide-react";
 import { PanelShell, type PanelState } from "./PanelShell";
 import { StatusBadge } from "./StatusBadge";
 import type { RunDetail } from "../types";
@@ -11,38 +12,36 @@ export default function DecisionPanel({ state, run }: Props) {
   const results = run?.assessment_results as any;
   const risks = results?.["assessment-results"]?.results?.[0]?.risks ?? [];
   const hasRisk = risks.length > 0;
+  const isPass = run?.outcome === "pass";
 
   return (
     <PanelShell title="Pass / Fail" subtitle="Control outcome" state={state}>
-      <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+      <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
         {!run && (
-          <p className="text-xs text-surface-muted">Awaiting pipeline execution.</p>
+          <p className="text-sm text-surface-muted">Awaiting pipeline execution.</p>
         )}
 
         {run && (
           <>
-            <div className="flex items-center gap-2">
-              <StatusBadge
-                kind="status"
-                value={run.outcome === "pass" ? "PASS" : "FAIL"}
-                size="lg"
-              />
-              <StatusBadge
-                kind="risk"
-                value={hasRisk ? "HIGH" : "NONE"}
-                size="lg"
-              />
+            {isPass ? (
+              <ShieldCheck className="w-12 h-12 text-accent-emerald" />
+            ) : (
+              <ShieldAlert className="w-12 h-12 text-accent-red" />
+            )}
+
+            <div className={`text-3xl font-black tracking-tight ${isPass ? "text-accent-emerald" : "text-accent-red"}`}>
+              {isPass ? "PASS" : "FAIL"}
             </div>
 
-            <p className="text-xs text-surface-muted leading-relaxed max-w-xs">
-              {run.outcome === "pass"
-                ? "Guest MFA enforcement is active. Conditional Access policy is enabled and requires MFA for guest users."
-                : `Guest MFA enforcement is not active. ${run.evaluation?.summary ?? ""}`}
-            </p>
+            <div className="flex items-center gap-2">
+              <StatusBadge kind="risk" value={hasRisk ? "HIGH" : "NONE"} size="md" />
+            </div>
 
-            {hasRisk && risks[0]?.description && (
-              <p className="text-[10px] text-accent-red/70 max-w-xs">{risks[0].description}</p>
-            )}
+            <p className="text-sm text-surface-muted leading-relaxed max-w-xs">
+              {isPass
+                ? "Guest MFA enforcement is active."
+                : run.evaluation?.summary ?? "Control not met."}
+            </p>
           </>
         )}
       </div>

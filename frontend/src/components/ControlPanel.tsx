@@ -6,16 +6,27 @@ interface Props {
 }
 
 const SNIPPET = {
-  title: "catalog.json structure",
+  title: "catalog.json — A.8.5",
   language: "json" as const,
   lines: [
     '{ "catalog": {',
-    '    "uuid": "a1b2c3d4-...",',
-    '    "metadata": { "oscal-version": "1.1.3" },',
+    '    "uuid": "a1b2c3d4-1111-4000-...",',
+    '    "metadata": {',
+    '      "title": "ISO/IEC 27001:2022",',
+    '      "oscal-version": "1.1.3" },',
     '    "groups": [{ "id": "annex-a-8",',
-    '      "controls": [{ "id": "a-8-5" }]',
-    "    }]",
-    "}}",
+    '      "title": "Technological Controls",',
+    '      "controls": [{',
+    '        "id": "a-8-5",',
+    '        "title": "Secure Authentication",',
+    '        "parts": [',
+    '          { "name": "objective",',
+    '            "prose": "Secure auth shall be.."},',
+    '          { "name": "scope",',
+    '            "prose": "Guest users MUST be',
+    '             protected by MFA via CA" }',
+    '    ]}]}]',
+    '}}',
   ],
   outputs: ["catalog.json"],
 };

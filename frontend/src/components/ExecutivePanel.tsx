@@ -18,7 +18,7 @@ export function ExecutivePanel({ state, run }: Props) {
     <PanelShell title="Assurance Summary" subtitle="Leadership view" state={state}>
       <div className="flex flex-col gap-3">
         {!run && (
-          <p className="text-xs text-surface-muted">
+          <p className="text-sm text-surface-muted">
             Run the pipeline to generate an assurance summary.
           </p>
         )}
@@ -26,41 +26,41 @@ export function ExecutivePanel({ state, run }: Props) {
         {run && (
           <>
             <div className="flex items-center gap-2">
-              <StatusBadge kind="status" value={isPass ? "PASS" : "FAIL"} size="md" />
-              <StatusBadge kind="risk" value={hasRisk ? "HIGH" : "LOW"} size="md" />
+              <StatusBadge kind="status" value={isPass ? "PASS" : "FAIL"} size="lg" />
+              <StatusBadge kind="risk" value={hasRisk ? "HIGH" : "LOW"} size="lg" />
             </div>
 
             <div className={[
-              "flex items-start gap-2.5 p-3 rounded-md border",
+              "flex items-start gap-3 p-3 rounded-md border",
               isPass
                 ? "border-accent-emerald/20 bg-accent-emerald/5"
                 : "border-accent-red/20 bg-accent-red/5",
             ].join(" ")}>
               {isPass ? (
-                <ShieldCheck className="w-4 h-4 text-accent-emerald shrink-0 mt-0.5" />
+                <ShieldCheck className="w-5 h-5 text-accent-emerald shrink-0 mt-0.5" />
               ) : (
-                <AlertTriangle className="w-4 h-4 text-accent-red shrink-0 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-accent-red shrink-0 mt-0.5" />
               )}
-              <p className="text-xs text-surface-text leading-relaxed">
+              <p className="text-sm text-surface-text leading-relaxed">
                 {isPass
                   ? "MFA is enforced for all guest users. Control A.8.5 is satisfied."
                   : `Control not met. ${run.evaluation?.summary ?? ""}`}
               </p>
             </div>
 
-            <div className="flex items-start gap-2.5 p-3 rounded-md border border-surface-border bg-surface-700/30">
-              <FileCheck className="w-4 h-4 text-accent-cyan shrink-0 mt-0.5" />
-              <div className="text-[10px] text-surface-muted leading-relaxed">
+            <div className="flex items-start gap-3 p-3 rounded-md border border-surface-border bg-surface-700/30">
+              <FileCheck className="w-5 h-5 text-accent-cyan shrink-0 mt-0.5" />
+              <p className="text-sm text-surface-muted leading-relaxed">
                 <span className="font-semibold text-surface-text">Evidence: </span>
                 {run.mode === "live" ? "Live Entra ID query" : `Mock ${run.mode.replace("mock-", "")} fixture`}
                 {" · "}OSCAL 1.1.3
-              </div>
+              </p>
             </div>
 
             {hasRisk && (
-              <div className="flex items-start gap-2.5 p-3 rounded-md border border-accent-amber/20 bg-accent-amber/5">
-                <TrendingUp className="w-4 h-4 text-accent-amber shrink-0 mt-0.5" />
-                <p className="text-[10px] text-surface-text leading-relaxed">
+              <div className="flex items-start gap-3 p-3 rounded-md border border-accent-amber/20 bg-accent-amber/5">
+                <TrendingUp className="w-5 h-5 text-accent-amber shrink-0 mt-0.5" />
+                <p className="text-sm text-surface-text leading-relaxed">
                   <span className="font-semibold">Action required:</span> Enable MFA policy for guest users and re-run assessment.
                 </p>
               </div>
