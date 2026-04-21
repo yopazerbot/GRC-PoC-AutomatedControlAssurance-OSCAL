@@ -169,4 +169,23 @@ if STATIC_DIR.is_dir() and (STATIC_DIR / "index.html").is_file():
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", "8000"))
+
+    dash_url = f"http://localhost:{port}"
+    health_url = f"http://localhost:{port}/api/health"
+    banner = (
+        "\n"
+        "  +--------------------------------------------------------------+\n"
+        "  |                                                              |\n"
+        "  |   GRC Lab -- OSCAL-native Continuous Compliance Automation   |\n"
+        "  |                                                              |\n"
+       f"  |   Dashboard:  {dash_url:<45s}|\n"
+       f"  |   Health:     {health_url:<45s}|\n"
+        "  |                                                              |\n"
+        "  |   Made by Yoshi Parlevliet                                   |\n"
+        "  |   MIT License -- use at your own risk                        |\n"
+        "  |                                                              |\n"
+        "  +--------------------------------------------------------------+\n"
+    )
+    print(banner)
+
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
