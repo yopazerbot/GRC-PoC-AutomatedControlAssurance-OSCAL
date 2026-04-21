@@ -126,6 +126,7 @@ export default function SettingsDrawer({ open, onClose }: Props) {
     if (!tenantId || !clientId || !clientSecret) return;
     saveCredentials({ tenant_id: tenantId, client_id: clientId, client_secret: clientSecret });
     setHasCreds(true);
+    onClose();
   };
 
   const handleSave = () => {
