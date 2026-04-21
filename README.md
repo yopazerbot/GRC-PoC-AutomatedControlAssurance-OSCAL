@@ -2,7 +2,7 @@
 
 **Prove your security controls work. Automatically. In real time.**
 
-GRC Lab is an open-source proof of concept that automates the entire compliance control lifecycle — from evidence collection to audit-ready OSCAL artifacts — in a single container. No spreadsheets. No screenshots. No manual evidence gathering.
+This is an open-source proof of concept that automates the entire compliance control lifecycle — from evidence collection to audit-ready OSCAL artifacts — in a single container. No spreadsheets. No screenshots. No manual evidence gathering.
 
 ## The Problem
 
