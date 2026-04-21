@@ -57,19 +57,22 @@ export default function FlowTimeline({ currentIndex, onJump }: Props) {
 
             {i < PHASES.length - 1 && (
               <div className="flex-1 h-px mx-1 bg-surface-border relative overflow-hidden min-w-[12px]">
-                <motion.div
-                  initial={false}
-                  animate={{
-                    width:
-                      i < currentIndex
-                        ? "100%"
-                        : i === currentIndex
-                          ? "50%"
-                          : "0%",
-                  }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                  className="absolute inset-y-0 left-0 bg-accent-cyan"
-                />
+                {i < currentIndex && (
+                  <motion.div
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="absolute inset-y-0 left-0 bg-accent-emerald"
+                  />
+                )}
+                {i === currentIndex && currentIndex >= 0 && (
+                  <motion.div
+                    initial={{ width: "0%" }}
+                    animate={{ width: "50%" }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="absolute inset-y-0 left-0 bg-accent-cyan"
+                  />
+                )}
               </div>
             )}
           </Fragment>
