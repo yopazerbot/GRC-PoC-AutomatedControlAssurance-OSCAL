@@ -25,9 +25,9 @@ export function PublicDemoBanner({ onOpenSettings }: Props) {
 
   return (
     <>
-      <div className="flex items-center gap-2 px-4 py-1.5 border-b border-accent-emerald/30 bg-accent-emerald/5 shrink-0 text-[11px]">
-        <ShieldCheck className="w-3.5 h-3.5 text-accent-emerald shrink-0" aria-hidden />
-        <span className="text-surface-text min-w-0 flex-1 truncate sm:whitespace-normal">
+      <div className="flex items-start lg:items-center gap-2 px-4 py-2 lg:py-1.5 border-b border-accent-emerald/30 bg-accent-emerald/5 shrink-0 text-xs lg:text-[11px]">
+        <ShieldCheck className="w-3.5 h-3.5 text-accent-emerald shrink-0 mt-0.5 lg:mt-0" aria-hidden />
+        <span className="text-surface-text min-w-0 flex-1">
           <span className="font-semibold">Public demo.</span>{" "}
           <span className="text-surface-muted">
             Credentials you enter live
@@ -47,7 +47,7 @@ export function PublicDemoBanner({ onOpenSettings }: Props) {
         >
           Settings
         </button>
-        <button onClick={dismiss} aria-label="Dismiss" className="shrink-0 text-surface-muted hover:text-surface-text transition-colors">
+        <button onClick={dismiss} aria-label="Dismiss" className="shrink-0 text-surface-muted hover:text-surface-text transition-colors mt-0.5 lg:mt-0">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
