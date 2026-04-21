@@ -34,8 +34,8 @@ export default function DecisionPanel({ state, run }: Props) {
                 </div>
                 <p className="text-sm text-surface-muted leading-relaxed">
                   {isPass
-                    ? "MFA is enforced for all guest users. Control A.8.5 is satisfied."
-                    : `Control not met. ${run.evaluation?.summary ?? ""}`}
+                    ? "MFA for guest users is enabled."
+                    : `MFA for guest users is not enabled. ${run.evaluation?.summary ?? ""}`}
                 </p>
               </div>
             </div>
