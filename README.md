@@ -10,7 +10,7 @@ Organisations spend thousands of hours per year manually collecting evidence for
 
 ## The Solution
 
-GRC Lab connects directly to your Microsoft Entra ID tenant, evaluates your Conditional Access policies, and produces machine-readable [NIST OSCAL](https://pages.nist.gov/OSCAL/) artifacts — the emerging standard for automated compliance documentation.
+This PoC connects directly to your Microsoft Entra ID tenant, evaluates your Conditional Access policies, and produces machine-readable [NIST OSCAL](https://pages.nist.gov/OSCAL/) artifacts — the emerging standard for automated compliance documentation.
 
 **One click. Real evidence. Valid OSCAL.**
 
