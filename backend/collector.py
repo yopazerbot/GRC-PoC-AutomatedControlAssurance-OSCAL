@@ -57,33 +57,56 @@ async def collect_live(tenant_id: str, client_id: str, client_secret: str) -> li
         )
 
         if token_resp.status_code != 200:
-            body = token_resp.json() if token_resp.headers.get("content-type", "").startswith("application/json") else {}
-            error_desc = body.get("error_description", token_resp.text[:500])
+            error_code = ""
+            try:
+                body = token_resp.json()
+                error_code = body.get("error", "")
+            except Exception:
+                pass
+
+            if token_resp.status_code == 401 or error_code == "invalid_client":
+                raise RuntimeError(
+                    "Authentication failed: invalid client credentials. "
+                    "Verify that tenant_id, client_id, and client_secret are correct."
+                )
+            if error_code == "unauthorized_client":
+                raise RuntimeError(
+                    "Authentication failed: this app registration is not authorized "
+                    "for client credentials flow. Check the app's API permissions."
+                )
             raise RuntimeError(
-                f"Authentication failed (HTTP {token_resp.status_code}): {error_desc}. "
-                "Check that tenant_id, client_id, and client_secret are correct."
+                f"Authentication failed (HTTP {token_resp.status_code}). "
+                "Verify your Entra ID credentials and try again."
             )
 
-        access_token = token_resp.json()["access_token"]
+        access_token = token_resp.json().get("access_token")
+        if not access_token:
+            raise RuntimeError("Authentication succeeded but no access token was returned.")
 
-        policies_resp = await client.get(
-            "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies",
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
+        try:
+            policies_resp = await client.get(
+                "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies",
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+        finally:
+            del access_token
 
         if policies_resp.status_code == 403:
             raise RuntimeError(
-                "Permission denied (HTTP 403). Ensure the app registration has "
+                "Permission denied. Ensure the app registration has "
                 "Policy.Read.All permission and admin consent has been granted."
             )
 
         if policies_resp.status_code != 200:
             raise RuntimeError(
-                f"Failed to fetch Conditional Access policies (HTTP {policies_resp.status_code}): "
-                f"{policies_resp.text[:500]}"
+                f"Failed to fetch Conditional Access policies (HTTP {policies_resp.status_code})."
             )
 
-        data = policies_resp.json()
+        try:
+            data = policies_resp.json()
+        except Exception:
+            raise RuntimeError("Microsoft Graph returned an invalid response.")
+
         return data.get("value", [])
 
 
@@ -102,10 +125,19 @@ async def collect_live_dry_run(tenant_id: str, client_id: str, client_secret: st
         )
 
         if token_resp.status_code != 200:
-            body = token_resp.json() if token_resp.headers.get("content-type", "").startswith("application/json") else {}
-            error_desc = body.get("error_description", token_resp.text[:500])
+            error_code = ""
+            try:
+                body = token_resp.json()
+                error_code = body.get("error", "")
+            except Exception:
+                pass
+
+            if error_code == "invalid_client":
+                raise RuntimeError(
+                    "Authentication failed: invalid client credentials."
+                )
             raise RuntimeError(
-                f"Authentication failed (HTTP {token_resp.status_code}): {error_desc}"
+                f"Authentication failed (HTTP {token_resp.status_code})."
             )
 
         return True

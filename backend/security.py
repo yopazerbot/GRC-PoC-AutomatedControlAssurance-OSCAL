@@ -3,20 +3,27 @@ from __future__ import annotations
 import asyncio
 import os
 import re
-from functools import wraps
+import secrets
 
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 
-SECRET_SCRUB_PATTERN = re.compile(
-    r"[a-zA-Z0-9~_.]{30,}",
-    re.ASCII,
-)
+SENSITIVE_PATTERN = re.compile(r"(secret|password|token)", re.IGNORECASE)
 
 
 def scrub_output(text: str) -> str:
-    return SECRET_SCRUB_PATTERN.sub("[REDACTED]", text)
+    return SENSITIVE_PATTERN.sub("[REDACTED]", text)
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        return response
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -32,7 +39,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         auth = request.headers.get("Authorization", "")
-        if auth != f"Bearer {api_token}":
+        expected = f"Bearer {api_token}"
+        if not secrets.compare_digest(auth, expected):
             raise HTTPException(status_code=401, detail="Invalid or missing API token.")
 
         return await call_next(request)
@@ -44,7 +52,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._running = asyncio.Lock()
 
     async def dispatch(self, request: Request, call_next):
-        if request.method == "POST" and request.url.path == "/api/runs":
+        if request.method == "POST" and request.url.path in ("/api/runs", "/api/bundle"):
             if self._running.locked():
                 raise HTTPException(
                     status_code=429,

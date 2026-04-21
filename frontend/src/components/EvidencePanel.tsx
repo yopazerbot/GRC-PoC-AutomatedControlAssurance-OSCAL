@@ -31,7 +31,7 @@ function buildSnippet(run: RunDetail | null) {
   const policyCount = run.sanitized_evidence?.length ?? 0;
   const names = run.sanitized_evidence
     ?.slice(0, 3)
-    .map((p: any) => p.displayName || "unnamed") ?? [];
+    .map((p: any) => String(p.displayName || "unnamed").replace(/[<>"&\\]/g, "_").slice(0, 60)) ?? [];
 
   return {
     title: "Live Graph API response",

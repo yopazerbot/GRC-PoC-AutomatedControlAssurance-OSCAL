@@ -33,11 +33,12 @@ function buildSnippet(run: RunDetail | null) {
     lines: [
       `{ "passed": ${run.evaluation?.passed},`,
       `  "criteria": [`,
-      ...criteria.map((c, i) =>
-        `    { "${c.name}": ${c.passed} }${i < criteria.length - 1 ? "," : ""}`
-      ),
+      ...criteria.map((c, i) => {
+        const name = String(c.name).replace(/[<>"&\\]/g, "_").slice(0, 40);
+        return `    { "${name}": ${c.passed} }${i < criteria.length - 1 ? "," : ""}`;
+      }),
       `  ],`,
-      `  "summary": "${run.evaluation?.summary?.slice(0, 50)}..." }`,
+      `  "summary": "${String(run.evaluation?.summary ?? "").replace(/[<>"&\\]/g, "_").slice(0, 50)}..." }`,
     ],
     inputs: [`${run.sanitized_evidence?.length ?? 0} policies`],
     outputs: [run.evaluation?.passed ? "PASS" : "FAIL"],

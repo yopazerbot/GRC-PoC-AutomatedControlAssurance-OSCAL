@@ -12,9 +12,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from security import AuthMiddleware, RateLimitMiddleware
+from security import AuthMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
 from pipeline import execute_pipeline
 from collector import collect_live_dry_run
 
@@ -28,10 +28,12 @@ if cors_origins:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[o.strip() for o in cors_origins.split(",")],
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST"],
+        allow_headers=["Content-Type", "Authorization"],
+        allow_credentials=False,
     )
 
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(AuthMiddleware)
 
@@ -44,9 +46,9 @@ ARTIFACT_MAP = {
 
 
 class Credentials(BaseModel):
-    tenant_id: str
-    client_id: str
-    client_secret: str
+    tenant_id: str = Field(..., pattern=r"^[a-fA-F0-9\-]{36}$")
+    client_id: str = Field(..., pattern=r"^[a-fA-F0-9\-]{36}$")
+    client_secret: str = Field(..., min_length=1, max_length=512)
 
 
 class RunRequest(BaseModel):
