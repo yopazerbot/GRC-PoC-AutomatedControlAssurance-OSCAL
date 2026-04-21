@@ -1,6 +1,5 @@
 import { ShieldCheck, ShieldAlert } from "lucide-react";
 import { PanelShell, type PanelState } from "./PanelShell";
-import { StatusBadge } from "./StatusBadge";
 import type { RunDetail } from "../types";
 
 interface Props {
@@ -31,10 +30,6 @@ export default function DecisionPanel({ state, run }: Props) {
 
             <div className={`text-3xl font-black tracking-tight ${isPass ? "text-accent-emerald" : "text-accent-red"}`}>
               {isPass ? "PASS" : "FAIL"}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <StatusBadge kind="risk" value={hasRisk ? "HIGH" : "NONE"} size="md" />
             </div>
 
             <p className="text-sm text-surface-muted leading-relaxed max-w-xs">

@@ -25,10 +25,7 @@ export function ExecutivePanel({ state, run }: Props) {
 
         {run && (
           <>
-            <div className="flex items-center gap-2">
-              <StatusBadge kind="status" value={isPass ? "PASS" : "FAIL"} size="lg" />
-              <StatusBadge kind="risk" value={hasRisk ? "HIGH" : "LOW"} size="lg" />
-            </div>
+            <StatusBadge kind="status" value={isPass ? "PASS" : "FAIL"} size="lg" />
 
             <div className={[
               "flex items-start gap-3 p-3 rounded-md border",
