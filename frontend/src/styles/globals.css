@@ -1,40 +1,64 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where([data-theme="dark"] *));
 
-:root {
-  --color-panel: #111827;
-  --color-panel-border: #1f2937;
-  --color-surface: #0a0f1a;
+@layer base {
+  :root {
+    color-scheme: light;
+    --color-surface-900: #f8fafc;
+    --color-surface-800: #ffffff;
+    --color-surface-700: #f1f5f9;
+    --color-surface-600: #e2e8f0;
+    --color-surface-border: #cbd5e1;
+    --color-surface-text:  #0f172a;
+    --color-surface-muted: #475569;
+    --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.04), 0 1px 3px rgb(0 0 0 / 0.06);
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --color-surface-900: #020617;
+    --color-surface-800: #0b1120;
+    --color-surface-700: #0f172a;
+    --color-surface-600: #1e293b;
+    --color-surface-border: #1e293b;
+    --color-surface-text:  #e2e8f0;
+    --color-surface-muted: #94a3b8;
+    --shadow-panel: none;
+  }
 }
 
-.dark {
-  color-scheme: dark;
+@theme inline {
+  --color-surface-900: var(--color-surface-900);
+  --color-surface-800: var(--color-surface-800);
+  --color-surface-700: var(--color-surface-700);
+  --color-surface-600: var(--color-surface-600);
+  --color-surface-border: var(--color-surface-border);
+  --color-surface-text: var(--color-surface-text);
+  --color-surface-muted: var(--color-surface-muted);
+
+  --color-accent-cyan:    #0891b2;
+  --color-accent-blue:    #2563eb;
+  --color-accent-indigo:  #4f46e5;
+  --color-accent-emerald: #059669;
+  --color-accent-amber:   #d97706;
+  --color-accent-red:     #dc2626;
+  --color-accent-purple:  #7c3aed;
+
+  --font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
-.light {
-  --color-panel: #ffffff;
-  --color-panel-border: #e5e7eb;
-  --color-surface: #f3f4f6;
-  color-scheme: light;
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background-color: var(--color-surface-900);
+  color: var(--color-surface-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-@keyframes pulse-stage {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.animate-pulse-stage {
-  animation: pulse-stage 1.5s ease-in-out infinite;
-}
-
-.panel {
-  background: var(--color-panel);
-  border: 1px solid var(--color-panel-border);
-  border-radius: 0.75rem;
-  padding: 1rem;
-}
+code, kbd, pre, samp { font-family: var(--font-mono); }

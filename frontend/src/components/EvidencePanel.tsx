@@ -1,69 +1,98 @@
 import { useState } from "react";
-import type { PipelineStage, RunDetail } from "../types";
+import { PanelShell, type PanelState } from "./PanelShell";
+import { CodeSnippet } from "./CodeSnippet";
+import type { RunDetail } from "../types";
 
 interface Props {
-  stage: PipelineStage;
+  state: PanelState;
   run: RunDetail | null;
   error: string | null;
 }
 
-export default function EvidencePanel({ stage, run, error }: Props) {
+const SNIPPET = {
+  title: "Graph API collection",
+  language: "python" as const,
+  lines: [
+    "token = await get_token(tenant, client, secret)",
+    "resp = await client.get(",
+    '  "graph.microsoft.com/v1.0/identity"',
+    '  "/conditionalAccess/policies",',
+    '  headers={"Authorization": f"Bearer {token}"}',
+    ")",
+    "return resp.json()['value']",
+  ],
+  inputs: ["tenant_id", "client_id", "client_secret"],
+  outputs: ["policies[]"],
+};
+
+export default function EvidencePanel({ state, run, error }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="panel flex flex-col gap-2 overflow-auto">
-      <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Evidence</h2>
-
-      {stage === "idle" && (
-        <p className="text-sm text-gray-500">Run the pipeline to collect evidence.</p>
-      )}
-
-      {stage === "collect" && (
-        <div className="flex items-center gap-2 text-sm text-blue-400">
-          <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
-          Collecting evidence...
-        </div>
-      )}
-
-      {stage === "error" && error && (
-        <div className="p-2 rounded bg-red-900/30 border border-red-700/50">
-          <p className="text-sm text-red-400 font-medium">Collection failed</p>
-          <p className="text-xs text-red-300 mt-1">{error}</p>
-          {error.includes("403") && (
-            <p className="text-xs text-gray-400 mt-2">
-              Ensure Policy.Read.All permission is granted and admin consent is given.
-            </p>
-          )}
-        </div>
-      )}
-
-      {run && run.sanitized_evidence && (
-        <>
-          <div className="text-sm">
-            <span className="text-gray-400">Policies found:</span>{" "}
-            <span className="font-medium">{run.sanitized_evidence.length}</span>
+    <PanelShell title="Evidence Collection" subtitle="Conditional Access" state={state}>
+      <div className="flex flex-col gap-3">
+        {state === "active" && !run && !error && (
+          <div className="flex items-center gap-2 text-xs text-accent-cyan">
+            <span className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse" />
+            Collecting evidence from source...
           </div>
-          {run.sanitized_evidence.map((p: any, i: number) => (
-            <div key={i} className="p-2 rounded bg-gray-800/50 border border-gray-700/50 text-sm">
-              <p className="font-medium">{p.displayName || `Policy ${i + 1}`}</p>
-              <p className="text-xs text-gray-400">
-                State: <span className={p.state === "enabled" ? "text-emerald-400" : "text-red-400"}>{p.state}</span>
+        )}
+
+        {error && (
+          <div className="rounded-md border border-accent-red/30 bg-accent-red/5 p-3">
+            <div className="text-[11px] font-semibold text-accent-red">Collection failed</div>
+            <p className="text-xs text-surface-muted mt-1">{error}</p>
+            {error.includes("403") && (
+              <p className="text-[10px] text-surface-muted mt-2">
+                Ensure <span className="font-mono">Policy.Read.All</span> permission is granted and admin consent is given.
               </p>
+            )}
+          </div>
+        )}
+
+        {!run && !error && state !== "active" && (
+          <p className="text-xs text-surface-muted">Run the pipeline to collect evidence.</p>
+        )}
+
+        {run?.sanitized_evidence && (
+          <>
+            <div className="text-xs">
+              <span className="text-surface-muted">Policies found:</span>{" "}
+              <span className="font-mono font-semibold">{run.sanitized_evidence.length}</span>
             </div>
-          ))}
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="text-xs text-blue-400 hover:text-blue-300 mt-1 text-left"
-          >
-            {expanded ? "Hide raw JSON" : "View raw JSON"}
-          </button>
-          {expanded && (
-            <pre className="text-xs bg-gray-900 p-2 rounded overflow-auto max-h-48 border border-gray-700/50">
-              {JSON.stringify(run.sanitized_evidence, null, 2)}
-            </pre>
-          )}
-        </>
-      )}
-    </div>
+            {run.sanitized_evidence.map((p: any, i: number) => (
+              <div key={i} className="rounded-md border border-surface-border bg-surface-700/60 p-3">
+                <div className="text-xs font-semibold text-surface-text">
+                  {p.displayName || `Policy ${i + 1}`}
+                </div>
+                <div className="flex items-center gap-2 mt-1 text-[10px] font-mono">
+                  <span className="text-surface-muted">state:</span>
+                  <span
+                    className={
+                      p.state === "enabled" ? "text-accent-emerald" : "text-accent-red"
+                    }
+                  >
+                    {p.state}
+                  </span>
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="text-[10px] text-accent-cyan hover:brightness-110 transition-colors text-left font-medium"
+            >
+              {expanded ? "Hide raw JSON" : "View raw JSON"}
+            </button>
+            {expanded && (
+              <pre className="text-[11px] font-mono bg-surface-700/60 p-3 rounded-md overflow-auto max-h-40 border border-surface-border text-surface-text">
+                {JSON.stringify(run.sanitized_evidence, null, 2)}
+              </pre>
+            )}
+          </>
+        )}
+
+        <CodeSnippet snippet={SNIPPET} />
+      </div>
+    </PanelShell>
   );
 }

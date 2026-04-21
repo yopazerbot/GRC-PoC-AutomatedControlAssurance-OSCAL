@@ -1,18 +1,56 @@
-export default function ControlPanel() {
+import { PanelShell, type PanelState } from "./PanelShell";
+import { CodeSnippet } from "./CodeSnippet";
+
+interface Props {
+  state: PanelState;
+}
+
+const SNIPPET = {
+  title: "catalog.json structure",
+  language: "json" as const,
+  lines: [
+    '{ "catalog": {',
+    '    "uuid": "a1b2c3d4-...",',
+    '    "metadata": { "oscal-version": "1.1.3" },',
+    '    "groups": [{ "id": "annex-a-8",',
+    '      "controls": [{ "id": "a-8-5" }]',
+    "    }]",
+    "}}",
+  ],
+  outputs: ["catalog.json"],
+};
+
+export default function ControlPanel({ state }: Props) {
   return (
-    <div className="panel flex flex-col gap-2 overflow-auto">
-      <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Control</h2>
-      <h3 className="text-base font-bold">A.8.5 Secure Authentication</h3>
-      <p className="text-sm text-gray-300 leading-relaxed">
-        Secure authentication technologies and procedures shall be established and implemented based on information access restrictions and the topic-specific policy on access control.
-      </p>
-      <div className="mt-2 p-2 rounded bg-gray-800/50 border border-gray-700/50">
-        <p className="text-xs text-gray-400 font-medium mb-1">Scope (this demo)</p>
-        <p className="text-sm text-blue-300">
-          Guest users accessing tenant resources MUST be protected by MFA via Conditional Access.
-        </p>
+    <PanelShell title="Control Definition" subtitle="ISO 27001 A.8.5" state={state}>
+      <div className="flex flex-col gap-3">
+        <div>
+          <div className="text-[11px] uppercase tracking-wider font-semibold text-surface-text">
+            A.8.5 Secure Authentication
+          </div>
+          <p className="text-xs text-surface-muted leading-relaxed mt-1.5">
+            Secure authentication technologies and procedures shall be established and
+            implemented based on information access restrictions and the topic-specific
+            policy on access control.
+          </p>
+        </div>
+
+        <div className="rounded-md border border-accent-cyan/20 bg-accent-cyan/5 p-3">
+          <div className="text-[10px] uppercase tracking-wider font-semibold text-accent-cyan mb-1">
+            Scope (this demo)
+          </div>
+          <p className="text-xs text-surface-text leading-relaxed">
+            Guest users accessing tenant resources MUST be protected by MFA via
+            Conditional Access policies in Microsoft Entra ID.
+          </p>
+        </div>
+
+        <div className="text-[10px] text-surface-muted">
+          ISO/IEC 27001:2022 · Annex A — Technological Controls
+        </div>
+
+        <CodeSnippet snippet={SNIPPET} />
       </div>
-      <p className="text-xs text-gray-500 mt-auto">ISO/IEC 27001:2022 | Annex A - Technological Controls</p>
-    </div>
+    </PanelShell>
   );
 }

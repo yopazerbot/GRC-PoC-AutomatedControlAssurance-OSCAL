@@ -1,49 +1,71 @@
-import type { PipelineStage, RunDetail } from "../types";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { PanelShell, type PanelState } from "./PanelShell";
+import { CodeSnippet } from "./CodeSnippet";
+import type { RunDetail } from "../types";
 
 interface Props {
-  stage: PipelineStage;
+  state: PanelState;
   run: RunDetail | null;
 }
 
-export default function EvaluationPanel({ stage, run }: Props) {
+const SNIPPET = {
+  title: "evaluation logic",
+  language: "python" as const,
+  lines: [
+    "for policy in policies:",
+    "  if not targets_guests(policy): continue",
+    "  if policy['state'] != 'enabled': fail()",
+    "  if 'mfa' not in grant_controls: fail()",
+    "  return PASS",
+    "return FAIL  # no qualifying policy",
+  ],
+  inputs: ["policies[]"],
+  outputs: ["evaluation_result"],
+};
+
+export default function EvaluationPanel({ state, run }: Props) {
   return (
-    <div className="panel flex flex-col gap-2 overflow-auto">
-      <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Evaluation</h2>
+    <PanelShell title="Evaluation" subtitle="4 criteria" state={state}>
+      <div className="flex flex-col gap-3">
+        {state === "active" && !run && (
+          <div className="flex items-center gap-2 text-xs text-accent-cyan">
+            <span className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse" />
+            Evaluating criteria...
+          </div>
+        )}
 
-      {stage === "evaluate" && (
-        <div className="flex items-center gap-2 text-sm text-blue-400">
-          <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
-          Evaluating criteria...
-        </div>
-      )}
+        {!run && state !== "active" && (
+          <p className="text-xs text-surface-muted">Criteria will appear after evidence is collected.</p>
+        )}
 
-      {!run && !["evaluate"].includes(stage) && (
-        <p className="text-sm text-gray-500">Criteria will appear after evidence is collected.</p>
-      )}
-
-      {run?.evaluation?.criteria && (
-        <div className="flex flex-col gap-1.5">
-          {run.evaluation.criteria.map((c, i) => (
-            <div key={i} className="flex items-start gap-2 p-2 rounded bg-gray-800/50 border border-gray-700/50">
-              <span className="mt-0.5 flex-shrink-0">
+        {run?.evaluation?.criteria && (
+          <div className="flex flex-col gap-2">
+            {run.evaluation.criteria.map((c, i) => (
+              <div
+                key={i}
+                className={[
+                  "flex items-start gap-2.5 p-2.5 rounded-md border",
+                  c.passed
+                    ? "border-accent-emerald/20 bg-accent-emerald/5"
+                    : "border-accent-red/20 bg-accent-red/5",
+                ].join(" ")}
+              >
                 {c.passed ? (
-                  <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-accent-emerald shrink-0 mt-0.5" />
                 ) : (
-                  <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                  </svg>
+                  <XCircle className="w-3.5 h-3.5 text-accent-red shrink-0 mt-0.5" />
                 )}
-              </span>
-              <div>
-                <p className="text-sm font-medium">{c.name}</p>
-                <p className="text-xs text-gray-400">{c.reason}</p>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-surface-text">{c.name}</div>
+                  <div className="text-[10px] text-surface-muted mt-0.5">{c.reason}</div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+
+        <CodeSnippet snippet={SNIPPET} />
+      </div>
+    </PanelShell>
   );
 }

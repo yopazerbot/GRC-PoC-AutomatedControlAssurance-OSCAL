@@ -1,52 +1,80 @@
-import type { PipelineStage } from "../types";
+import { Fragment } from "react";
+import { motion } from "framer-motion";
 
-const STAGES: { key: PipelineStage; label: string }[] = [
-  { key: "collect", label: "Collect" },
-  { key: "evaluate", label: "Evaluate" },
-  { key: "generate", label: "Generate OSCAL" },
-  { key: "done", label: "Done" },
-];
+export const PHASES = ["control", "evidence", "evaluation", "oscal", "decision", "runtime", "executive"] as const;
+export type Phase = (typeof PHASES)[number];
 
-const ORDER: Record<string, number> = { idle: -1, collect: 0, evaluate: 1, generate: 2, done: 3, error: -1 };
+const PHASE_LABELS: Record<Phase, string> = {
+  control: "Control",
+  evidence: "Evidence",
+  evaluation: "Evaluation",
+  oscal: "OSCAL",
+  decision: "Pass/Fail",
+  runtime: "Runtime",
+  executive: "Executive",
+};
 
 interface Props {
-  stage: PipelineStage;
+  currentIndex: number;
+  onJump: (phase: Phase) => void;
 }
 
-export default function FlowTimeline({ stage }: Props) {
-  const current = ORDER[stage] ?? -1;
-
+export default function FlowTimeline({ currentIndex, onJump }: Props) {
   return (
-    <div className="panel flex items-center justify-center gap-2 py-3">
-      {STAGES.map((s, i) => {
-        const idx = ORDER[s.key];
-        const isActive = idx === current;
-        const isDone = idx < current && current >= 0;
-        const isPending = idx > current || current < 0;
+    <div className="flex items-center gap-1 px-4 h-16 border-b border-surface-border bg-surface-800/60 shrink-0 overflow-x-auto">
+      <span className="text-[10px] uppercase tracking-wider text-surface-muted shrink-0 pr-2">flow</span>
+      <div className="flex items-center flex-1 min-w-0">
+        {PHASES.map((p, i) => (
+          <Fragment key={p}>
+            <button onClick={() => onJump(p)} className="group flex flex-col items-center gap-1 shrink-0">
+              <motion.div
+                animate={{ scale: i === currentIndex ? 1.08 : 1 }}
+                transition={{ type: "spring", stiffness: 250, damping: 20 }}
+                className={[
+                  "w-7 h-7 rounded-full border flex items-center justify-center text-[11px] font-semibold font-mono transition-colors",
+                  i === currentIndex
+                    ? "bg-accent-cyan text-surface-800 border-accent-cyan"
+                    : i < currentIndex
+                      ? "bg-accent-emerald/20 text-accent-emerald border-accent-emerald/40"
+                      : "bg-surface-700 text-surface-muted border-surface-border",
+                ].join(" ")}
+              >
+                {i + 1}
+              </motion.div>
+              <span
+                className={[
+                  "text-[9px] uppercase tracking-wider font-medium transition-colors",
+                  i === currentIndex
+                    ? "text-accent-cyan"
+                    : i < currentIndex
+                      ? "text-accent-emerald"
+                      : "text-surface-muted",
+                ].join(" ")}
+              >
+                {PHASE_LABELS[p]}
+              </span>
+            </button>
 
-        return (
-          <div key={s.key} className="flex items-center gap-2">
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
-              ${isActive ? "bg-blue-600 text-white animate-pulse-stage" : ""}
-              ${isDone ? "bg-emerald-600/20 text-emerald-400 border border-emerald-600/30" : ""}
-              ${isPending ? "bg-gray-800/50 text-gray-500 border border-gray-700/50" : ""}
-              ${stage === "error" && idx === current ? "bg-red-600 text-white" : ""}
-            `}>
-              {isDone && (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                </svg>
-              )}
-              {s.label}
-            </div>
-            {i < STAGES.length - 1 && (
-              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-              </svg>
+            {i < PHASES.length - 1 && (
+              <div className="flex-1 h-px mx-1 bg-surface-border relative overflow-hidden min-w-[12px]">
+                <motion.div
+                  initial={false}
+                  animate={{
+                    width:
+                      i < currentIndex
+                        ? "100%"
+                        : i === currentIndex
+                          ? "50%"
+                          : "0%",
+                  }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="absolute inset-y-0 left-0 bg-accent-cyan"
+                />
+              </div>
             )}
-          </div>
-        );
-      })}
+          </Fragment>
+        ))}
+      </div>
     </div>
   );
 }

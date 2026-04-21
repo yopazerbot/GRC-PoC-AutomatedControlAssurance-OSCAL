@@ -1,77 +1,129 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Mode } from "./types";
+import type { PanelState } from "./components/PanelShell";
+import { PHASES } from "./components/FlowTimeline";
 import { usePipeline } from "./hooks/usePipeline";
 import Header from "./components/Header";
+import { PublicDemoBanner } from "./components/PublicDemoBanner";
+import { OrgContext } from "./components/OrgContext";
+import ScenarioSelector from "./components/ScenarioSelector";
 import FlowTimeline from "./components/FlowTimeline";
 import ControlPanel from "./components/ControlPanel";
 import EvidencePanel from "./components/EvidencePanel";
 import EvaluationPanel from "./components/EvaluationPanel";
 import OscalResultPanel from "./components/OscalResultPanel";
 import DecisionPanel from "./components/DecisionPanel";
-import TimelinePanel from "./components/TimelinePanel";
-import TracePanel from "./components/TracePanel";
+import { RuntimePanel } from "./components/RuntimePanel";
+import { ExecutivePanel } from "./components/ExecutivePanel";
+import { PhaseControls } from "./components/PhaseControls";
 import SettingsDrawer from "./components/SettingsDrawer";
 
+const THEME_KEY = "grc-lab-theme";
+
+function panelState(panelPhaseIndex: number, currentPhaseIndex: number, hasDoneRun: boolean): PanelState {
+  if (hasDoneRun && currentPhaseIndex >= panelPhaseIndex) return currentPhaseIndex === panelPhaseIndex ? "active" : "completed";
+  if (currentPhaseIndex === panelPhaseIndex) return "active";
+  if (currentPhaseIndex > panelPhaseIndex) return "completed";
+  return "pending";
+}
+
 export default function App() {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(() => {
+    const stored = localStorage.getItem(THEME_KEY);
+    return stored ? stored === "dark" : true;
+  });
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<Mode>("mock-pass");
+  const [apiOk, setApiOk] = useState(true);
   const pipeline = usePipeline();
 
   useEffect(() => {
-    document.documentElement.className = isDark ? "dark" : "light";
+    const theme = isDark ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem(THEME_KEY, theme);
   }, [isDark]);
 
   useEffect(() => {
     pipeline.refreshRuns();
+    fetch("/api/health").then((r) => setApiOk(r.ok)).catch(() => setApiOk(false));
   }, []);
 
-  const handleRun = useCallback((mode: Mode) => {
-    pipeline.execute(mode);
-  }, [pipeline.execute]);
+  const handleRun = useCallback(() => {
+    pipeline.execute(selectedMode);
+  }, [pipeline.execute, selectedMode]);
+
+  const isRunning = !["idle", "done", "error"].includes(pipeline.stage);
+  const hasDoneRun = pipeline.currentRun !== null;
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === "r" || e.key === "R") handleRun("mock-pass");
-      if (e.key === "1") handleRun("mock-pass");
-      if (e.key === "2") handleRun("mock-fail");
-      if (e.key === "3") handleRun("live");
-      if (e.key === "t" || e.key === "T") setIsDark((d) => !d);
+      const key = e.key.toLowerCase();
+      if (key === "r") handleRun();
+      if (key === "arrowleft") pipeline.prevPhase();
+      if (key === "arrowright") pipeline.nextPhase();
+      if (key === "0") pipeline.reset();
+      if (key === "t") setIsDark((d) => !d);
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [handleRun]);
+  }, [handleRun, pipeline.prevPhase, pipeline.nextPhase, pipeline.reset]);
+
+  const pi = pipeline.phaseIndex;
 
   return (
-    <div className={`h-screen flex flex-col ${isDark ? "bg-gray-950 text-gray-100" : "bg-gray-100 text-gray-900"}`}>
+    <div className="h-screen w-screen flex flex-col overflow-hidden">
       <Header
-        stage={pipeline.stage}
-        onRun={handleRun}
-        onToggleTheme={() => setIsDark((d) => !d)}
         onOpenSettings={() => setSettingsOpen(true)}
+        onToggleTheme={() => setIsDark((d) => !d)}
         isDark={isDark}
       />
+      <PublicDemoBanner onOpenSettings={() => setSettingsOpen(true)} />
+      <OrgContext runs={pipeline.runs} apiOk={apiOk} />
+      <ScenarioSelector current={selectedMode} onChange={setSelectedMode} />
+      <FlowTimeline currentIndex={pi} onJump={pipeline.jumpToPhase} />
 
-      <div className="flex-1 flex flex-col gap-3 p-3 overflow-hidden">
-        <FlowTimeline stage={pipeline.stage} />
+      <main className="flex-1 min-h-0 grid grid-cols-4 grid-rows-2 gap-3 p-3 overflow-hidden">
+        <ControlPanel state={panelState(0, pi, hasDoneRun)} />
+        <EvidencePanel
+          state={panelState(1, pi, hasDoneRun)}
+          run={pipeline.currentRun}
+          error={pipeline.error}
+        />
+        <EvaluationPanel
+          state={panelState(2, pi, hasDoneRun)}
+          run={pipeline.currentRun}
+        />
+        <OscalResultPanel
+          state={panelState(3, pi, hasDoneRun)}
+          run={pipeline.currentRun}
+        />
+        <DecisionPanel
+          state={panelState(4, pi, hasDoneRun)}
+          run={pipeline.currentRun}
+        />
+        <RuntimePanel
+          state={panelState(5, pi, hasDoneRun)}
+          runs={pipeline.runs}
+          activeRunId={pipeline.currentRun?.run_id ?? null}
+          onSelect={pipeline.loadRun}
+        />
+        <ExecutivePanel
+          state={panelState(6, pi, hasDoneRun)}
+          run={pipeline.currentRun}
+        />
+      </main>
 
-        <div className="flex-1 grid grid-cols-4 gap-3 min-h-0">
-          <ControlPanel />
-          <EvidencePanel stage={pipeline.stage} run={pipeline.currentRun} error={pipeline.error} />
-          <EvaluationPanel stage={pipeline.stage} run={pipeline.currentRun} />
-          <OscalResultPanel stage={pipeline.stage} run={pipeline.currentRun} />
-        </div>
-
-        <div className="grid grid-cols-4 gap-3" style={{ height: "200px" }}>
-          <DecisionPanel stage={pipeline.stage} run={pipeline.currentRun} />
-          <TimelinePanel
-            runs={pipeline.runs}
-            onSelect={pipeline.loadRun}
-            activeRunId={pipeline.currentRun?.run_id ?? null}
-          />
-          <TracePanel run={pipeline.currentRun} />
-        </div>
-      </div>
+      <PhaseControls
+        running={isRunning}
+        mode={selectedMode}
+        onRun={handleRun}
+        onPrev={pipeline.prevPhase}
+        onNext={pipeline.nextPhase}
+        onReset={pipeline.reset}
+        canPrev={pi > 0}
+        canNext={pi < PHASES.length - 1}
+      />
 
       <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
