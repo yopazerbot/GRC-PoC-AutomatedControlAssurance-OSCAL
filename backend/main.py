@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from security import AuthMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
 from pipeline import execute_pipeline
 from collector import collect_live_dry_run
+from slack_notify import notify_visit
 
 OSCAL_DIR = Path(__file__).parent / "oscal"
 STATIC_DIR = Path(__file__).parent / "static"
@@ -184,6 +185,7 @@ if STATIC_DIR.is_dir() and (STATIC_DIR / "index.html").is_file():
 
     @app.get("/")
     async def serve_index():
+        notify_visit()
         return FileResponse(STATIC_DIR / "index.html")
 
     @app.get("/{full_path:path}")
