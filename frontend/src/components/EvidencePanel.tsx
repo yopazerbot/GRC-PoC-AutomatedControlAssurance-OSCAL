@@ -93,15 +93,29 @@ export default function EvidencePanel({ state, run, error }: Props) {
                 <div className="text-xs font-semibold text-surface-text">
                   {p.displayName || `Policy ${i + 1}`}
                 </div>
-                <div className="flex items-center gap-2 mt-1 text-[10px] font-mono">
+                <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-1.5 text-[10px] font-mono">
                   <span className="text-surface-muted">state:</span>
-                  <span
-                    className={
-                      p.state === "enabled" ? "text-accent-emerald" : "text-accent-red"
-                    }
-                  >
+                  <span className={p.state === "enabled" ? "text-accent-emerald" : "text-accent-red"}>
                     {p.state}
                   </span>
+                  {p.createdDateTime && (
+                    <>
+                      <span className="text-surface-muted">created:</span>
+                      <span className="text-surface-text">{new Date(p.createdDateTime).toLocaleDateString()}</span>
+                    </>
+                  )}
+                  {p.modifiedDateTime && (
+                    <>
+                      <span className="text-surface-muted">modified:</span>
+                      <span className="text-surface-text">{new Date(p.modifiedDateTime).toLocaleDateString()}</span>
+                    </>
+                  )}
+                  {p.id && (
+                    <>
+                      <span className="text-surface-muted">id:</span>
+                      <span className="text-surface-text">{p.id.slice(0, 8)}...</span>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
