@@ -1,4 +1,4 @@
-import { Building2, Globe, Server, Database } from "lucide-react";
+import { Globe, Server, Database } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { RunSummary } from "../types";
 
@@ -44,11 +44,10 @@ export function OrgContext({ runs, apiOk }: Props) {
 
   return (
     <div className="flex items-center gap-2 px-4 h-10 border-b border-surface-border bg-surface-800/60 shrink-0 overflow-x-auto">
-      <Pill icon={Building2} label="org" value="GRC-OSCAL Demo" />
       <Pill
         icon={Globe}
         label="tenant"
-        value={tenantId ? `${tenantId.slice(0, 8)}...` : "—"}
+        value={tenantId ?? "not configured"}
       />
       <Pill icon={Server} label="api" value={apiOk ? "connected" : "offline"} tone={apiOk ? "ok" : "bad"} />
       <Pill icon={Database} label="history" value={`${runs.length} runs`} />
