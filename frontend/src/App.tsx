@@ -44,7 +44,6 @@ export default function App() {
   }, [isDark]);
 
   useEffect(() => {
-    pipeline.refreshRuns();
     fetch("/api/health").then((r) => setApiOk(r.ok)).catch(() => setApiOk(false));
   }, []);
 

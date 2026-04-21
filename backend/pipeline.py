@@ -2,25 +2,16 @@ from __future__ import annotations
 
 import time
 import uuid
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from collector import collect_mock_pass, collect_mock_fail, collect_live, sanitize_evidence
-from evaluator import evaluate, EvaluationResult
+from evaluator import evaluate
 from oscal_generator import generate_assessment_results
 
 
 @dataclass
-class RunSummary:
-    run_id: str
-    mode: str
-    timestamp: str
-    outcome: str
-    duration_ms: int
-
-
-@dataclass
-class RunDetail:
+class RunResult:
     run_id: str
     mode: str
     timestamp: str
@@ -31,47 +22,12 @@ class RunDetail:
     sanitized_evidence: list[dict]
 
 
-class RunStore:
-    def __init__(self, max_size: int = 50):
-        self._max_size = max_size
-        self._runs: list[RunDetail] = []
-
-    def add(self, run: RunDetail) -> None:
-        self._runs.insert(0, run)
-        if len(self._runs) > self._max_size:
-            self._runs.pop()
-
-    def clear(self) -> None:
-        self._runs.clear()
-
-    def list_summaries(self) -> list[dict]:
-        return [
-            {
-                "run_id": r.run_id,
-                "mode": r.mode,
-                "timestamp": r.timestamp,
-                "outcome": r.outcome,
-                "duration_ms": r.duration_ms,
-            }
-            for r in self._runs
-        ]
-
-    def get(self, run_id: str) -> RunDetail | None:
-        for r in self._runs:
-            if r.run_id == run_id:
-                return r
-        return None
-
-
-run_store = RunStore()
-
-
 async def execute_pipeline(
     mode: str,
     tenant_id: str | None = None,
     client_id: str | None = None,
     client_secret: str | None = None,
-) -> RunDetail:
+) -> RunResult:
     run_id = str(uuid.uuid4())
     start = time.monotonic()
     timestamp = datetime.now(timezone.utc).isoformat()
@@ -101,7 +57,7 @@ async def execute_pipeline(
         ],
     }
 
-    run = RunDetail(
+    return RunResult(
         run_id=run_id,
         mode=mode,
         timestamp=timestamp,
@@ -111,6 +67,3 @@ async def execute_pipeline(
         assessment_results=assessment_results,
         sanitized_evidence=sanitized,
     )
-
-    run_store.add(run)
-    return run

@@ -81,14 +81,21 @@ export default function OscalResultPanel({ state, run }: Props) {
                 value={run.outcome === "pass" ? "PASS" : "FAIL"}
                 size="md"
               />
-              <a
-                href={`/api/runs/${run.run_id}/bundle`}
-                download
+              <button
+                onClick={() => {
+                  const blob = new Blob([JSON.stringify(run.assessment_results, null, 2)], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `assessment-results-${run.run_id.slice(0, 8)}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
                 className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-accent-cyan/40 bg-accent-cyan/10 text-accent-cyan text-xs font-semibold uppercase tracking-wider hover:brightness-110 transition-colors"
               >
                 <FileArchive className="w-3 h-3" />
                 Download OSCAL (audit evidence)
-              </a>
+              </button>
             </div>
 
             <div className="space-y-1 text-[10px] text-surface-muted font-mono">

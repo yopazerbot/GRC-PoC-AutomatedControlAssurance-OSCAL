@@ -11,11 +11,11 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 from security import AuthMiddleware, RateLimitMiddleware
-from pipeline import execute_pipeline, run_store
+from pipeline import execute_pipeline
 from collector import collect_live_dry_run
 
 OSCAL_DIR = Path(__file__).parent / "oscal"
@@ -130,39 +130,23 @@ async def create_run(req: RunRequest, dry_run: bool = False):
     }
 
 
-@app.get("/api/runs")
-async def list_runs():
-    return run_store.list_summaries()
+@app.post("/api/bundle")
+async def create_bundle(req: RunRequest):
+    if req.mode not in ("mock-pass", "mock-fail", "live"):
+        raise HTTPException(status_code=400, detail="Mode must be mock-pass, mock-fail, or live.")
 
+    if req.mode == "live" and not req.credentials:
+        raise HTTPException(status_code=400, detail="Live mode requires credentials.")
 
-@app.delete("/api/runs")
-async def clear_runs():
-    run_store.clear()
-    return {"status": "ok"}
-
-
-@app.get("/api/runs/{run_id}")
-async def get_run(run_id: str):
-    run = run_store.get(run_id)
-    if not run:
-        raise HTTPException(status_code=404, detail="Run not found.")
-    return {
-        "run_id": run.run_id,
-        "mode": run.mode,
-        "timestamp": run.timestamp,
-        "outcome": run.outcome,
-        "duration_ms": run.duration_ms,
-        "evaluation": run.evaluation,
-        "assessment_results": run.assessment_results,
-        "sanitized_evidence": run.sanitized_evidence,
-    }
-
-
-@app.get("/api/runs/{run_id}/bundle")
-async def download_bundle(run_id: str):
-    run = run_store.get(run_id)
-    if not run:
-        raise HTTPException(status_code=404, detail="Run not found.")
+    try:
+        run = await execute_pipeline(
+            mode=req.mode,
+            tenant_id=req.credentials.tenant_id if req.credentials else None,
+            client_id=req.credentials.client_id if req.credentials else None,
+            client_secret=req.credentials.client_secret if req.credentials else None,
+        )
+    except (ValueError, RuntimeError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     files: dict[str, bytes] = {}
     for key, (filename, _, _) in ARTIFACT_MAP.items():
@@ -185,7 +169,7 @@ async def download_bundle(run_id: str):
             zf.writestr(f"oscal-bundle/{name}", content)
     buf.seek(0)
 
-    filename = f"oscal-bundle-{run_id[:8]}.zip"
+    filename = f"oscal-bundle-{run.run_id[:8]}.zip"
     return StreamingResponse(
         buf,
         media_type="application/zip",

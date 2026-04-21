@@ -1,10 +1,10 @@
 import { Trash2 } from "lucide-react";
 import { PanelShell, type PanelState } from "./PanelShell";
-import type { RunSummary } from "../types";
+import type { RunDetail } from "../types";
 
 interface Props {
   state: PanelState;
-  runs: RunSummary[];
+  runs: RunDetail[];
   activeRunId: string | null;
   onSelect: (runId: string) => void;
   onClear: () => void;
@@ -12,7 +12,7 @@ interface Props {
 
 const BAR_HEIGHT_PX = 56;
 
-function MiniBarChart({ runs, onSelect }: { runs: RunSummary[]; onSelect: (id: string) => void }) {
+function MiniBarChart({ runs, onSelect }: { runs: RunDetail[]; onSelect: (id: string) => void }) {
   const displayed = runs.slice(0, 25).reverse();
   const maxDuration = Math.max(...displayed.map((r) => r.duration_ms), 1);
 

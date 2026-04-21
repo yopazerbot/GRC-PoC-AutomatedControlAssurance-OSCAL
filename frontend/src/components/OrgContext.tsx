@@ -1,6 +1,6 @@
 import { Globe, Server, Database } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { RunSummary } from "../types";
+import type { RunDetail } from "../types";
 import { getStoredCredentials } from "../api";
 
 interface PillProps {
@@ -28,7 +28,7 @@ function Pill({ icon: Icon, label, value, tone = "default" }: PillProps) {
 }
 
 interface Props {
-  runs: RunSummary[];
+  runs: RunDetail[];
   apiOk: boolean;
 }
 

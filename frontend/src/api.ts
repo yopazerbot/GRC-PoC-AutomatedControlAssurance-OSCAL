@@ -1,6 +1,8 @@
 import type { Mode, Credentials, RunDetail, RunSummary, ArtifactMeta } from "./types";
 
 const CRED_KEY = "entra_credentials_b64";
+const RUNS_KEY = "grc_lab_runs";
+const MAX_RUNS = 50;
 
 function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -33,6 +35,24 @@ export function hasCredentials(): boolean {
 
 export function getStoredCredentials(): Credentials | null {
   return getCredentials();
+}
+
+export function loadRunsFromSession(): RunDetail[] {
+  const raw = sessionStorage.getItem(RUNS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export function saveRunsToSession(runs: RunDetail[]): void {
+  sessionStorage.setItem(RUNS_KEY, JSON.stringify(runs.slice(0, MAX_RUNS)));
+}
+
+export function clearRunsFromSession(): void {
+  sessionStorage.removeItem(RUNS_KEY);
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -71,20 +91,5 @@ export async function triggerRun(mode: Mode, dryRun = false): Promise<RunDetail>
     headers: getHeaders(),
     body: JSON.stringify(body),
   });
-  return handleResponse(res);
-}
-
-export async function fetchRuns(): Promise<RunSummary[]> {
-  const res = await fetch("/api/runs", { headers: getHeaders() });
-  return handleResponse(res);
-}
-
-export async function clearRuns(): Promise<void> {
-  const res = await fetch("/api/runs", { method: "DELETE", headers: getHeaders() });
-  await handleResponse(res);
-}
-
-export async function fetchRunDetail(runId: string): Promise<RunDetail> {
-  const res = await fetch(`/api/runs/${runId}`, { headers: getHeaders() });
   return handleResponse(res);
 }

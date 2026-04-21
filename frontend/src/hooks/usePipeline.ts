@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
-import type { Mode, PipelineStage, RunDetail, RunSummary } from "../types";
-import { triggerRun, fetchRuns, fetchRunDetail, clearRuns as apiClearRuns } from "../api";
+import type { Mode, PipelineStage, RunDetail } from "../types";
+import { triggerRun, loadRunsFromSession, saveRunsToSession, clearRunsFromSession } from "../api";
 import type { Phase } from "../components/FlowTimeline";
 import { PHASES } from "../components/FlowTimeline";
 
@@ -8,7 +8,7 @@ export function usePipeline() {
   const [stage, setStage] = useState<PipelineStage>("idle");
   const [phaseIndex, setPhaseIndex] = useState(-1);
   const [currentRun, setCurrentRun] = useState<RunDetail | null>(null);
-  const [runs, setRuns] = useState<RunSummary[]>([]);
+  const [runs, setRuns] = useState<RunDetail[]>(() => loadRunsFromSession());
   const [error, setError] = useState<string | null>(null);
   const running = useRef(false);
 
@@ -42,8 +42,11 @@ export function usePipeline() {
       setStage("done");
       setCurrentRun(result);
 
-      const updatedRuns = await fetchRuns();
-      setRuns(updatedRuns);
+      setRuns((prev) => {
+        const updated = [result, ...prev].slice(0, 50);
+        saveRunsToSession(updated);
+        return updated;
+      });
     } catch (e) {
       setStage("error");
       setError(e instanceof Error ? e.message : "Unknown error");
@@ -52,24 +55,15 @@ export function usePipeline() {
     }
   }, []);
 
-  const loadRun = useCallback(async (runId: string) => {
-    try {
-      const detail = await fetchRunDetail(runId);
-      setCurrentRun(detail);
+  const loadRun = useCallback((runId: string) => {
+    const found = runs.find((r) => r.run_id === runId);
+    if (found) {
+      setCurrentRun(found);
       setStage("done");
       setPhaseIndex(5);
       setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load run");
     }
-  }, []);
-
-  const refreshRuns = useCallback(async () => {
-    try {
-      const list = await fetchRuns();
-      setRuns(list);
-    } catch {}
-  }, []);
+  }, [runs]);
 
   const reset = useCallback(() => {
     setStage("idle");
@@ -91,15 +85,13 @@ export function usePipeline() {
     setPhaseIndex((i) => Math.min(PHASES.length - 1, i + 1));
   }, []);
 
-  const clearHistory = useCallback(async () => {
-    try {
-      await apiClearRuns();
-      setRuns([]);
-      setCurrentRun(null);
-      setStage("idle");
-      setPhaseIndex(-1);
-      setError(null);
-    } catch {}
+  const clearHistory = useCallback(() => {
+    clearRunsFromSession();
+    setRuns([]);
+    setCurrentRun(null);
+    setStage("idle");
+    setPhaseIndex(-1);
+    setError(null);
   }, []);
 
   return {
@@ -110,7 +102,6 @@ export function usePipeline() {
     error,
     execute,
     loadRun,
-    refreshRuns,
     reset,
     jumpToPhase,
     prevPhase,
