@@ -8,14 +8,17 @@ interface Props {
   onSelect: (runId: string) => void;
 }
 
-function MiniBarChart({ runs }: { runs: RunSummary[] }) {
-  const displayed = runs.slice(0, 20).reverse();
+const BAR_HEIGHT_PX = 56;
+
+function MiniBarChart({ runs, onSelect }: { runs: RunSummary[]; onSelect: (id: string) => void }) {
+  const displayed = runs.slice(0, 25).reverse();
   const maxDuration = Math.max(...displayed.map((r) => r.duration_ms), 1);
 
   return (
-    <div className="flex items-end gap-[3px] h-16 px-1">
+    <div className="flex items-end gap-[3px] px-1" style={{ height: `${BAR_HEIGHT_PX}px` }}>
       {displayed.map((run) => {
-        const height = Math.max(4, (run.duration_ms / maxDuration) * 100);
+        const pct = Math.max(0.08, run.duration_ms / maxDuration);
+        const barH = Math.round(pct * BAR_HEIGHT_PX);
         const isPass = run.outcome === "pass";
         const isMock = run.mode.startsWith("mock");
         const color = isMock
@@ -25,15 +28,11 @@ function MiniBarChart({ runs }: { runs: RunSummary[] }) {
         return (
           <div
             key={run.run_id}
-            className="flex-1 min-w-[6px] max-w-[20px] flex flex-col items-center justify-end gap-0.5"
-          >
-            <div
-              className={`w-full rounded-t-sm ${color} transition-all hover:brightness-125 cursor-pointer`}
-              style={{ height: `${height}%` }}
-              title={`${run.mode} · ${run.outcome} · ${run.duration_ms}ms`}
-              onClick={() => {}}
-            />
-          </div>
+            onClick={() => onSelect(run.run_id)}
+            className={`flex-1 min-w-[6px] max-w-[24px] rounded-t-sm cursor-pointer transition-all hover:brightness-125 ${color}`}
+            style={{ height: `${barH}px` }}
+            title={`${run.mode} · ${run.outcome} · ${run.duration_ms}ms · ${new Date(run.timestamp).toLocaleTimeString()}`}
+          />
         );
       })}
       {displayed.length === 0 && (
@@ -58,7 +57,7 @@ export function HistoryPanel({ state, runs, activeRunId, onSelect }: Props) {
                 Run duration (ms)
               </div>
               <div className="rounded-md border border-surface-border bg-surface-700/30 p-2">
-                <MiniBarChart runs={runs} />
+                <MiniBarChart runs={runs} onSelect={onSelect} />
               </div>
               <div className="flex justify-between text-[9px] text-surface-muted mt-0.5 px-1">
                 <span>oldest</span>
