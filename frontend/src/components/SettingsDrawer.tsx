@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ShieldCheck } from "lucide-react";
+import { X, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { saveCredentials, clearCredentials, hasCredentials, triggerRun } from "../api";
 import type { Credentials } from "../types";
 
@@ -16,6 +16,7 @@ export default function SettingsDrawer({ open, onClose }: Props) {
   const [hasCreds, setHasCreds] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "ok" | "error">("idle");
   const [testError, setTestError] = useState("");
+  const [showSecret, setShowSecret] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -26,7 +27,7 @@ export default function SettingsDrawer({ open, onClose }: Props) {
           const c = JSON.parse(raw) as Credentials;
           setTenantId(c.tenant_id);
           setClientId(c.client_id);
-          setClientSecret("");
+          setClientSecret(c.client_secret);
         } catch {}
       }
     }
@@ -123,13 +124,23 @@ export default function SettingsDrawer({ open, onClose }: Props) {
                   </div>
                   <div>
                     <label className="block text-[10px] uppercase tracking-wider text-surface-muted mb-1">Client Secret</label>
-                    <input
-                      type="password"
-                      value={clientSecret}
-                      onChange={(e) => setClientSecret(e.target.value)}
-                      placeholder="Enter client secret"
-                      className="w-full px-2 py-1.5 rounded-md border border-surface-border bg-surface-700 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent-cyan/40"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showSecret ? "text" : "password"}
+                        value={clientSecret}
+                        onChange={(e) => setClientSecret(e.target.value)}
+                        placeholder="Enter client secret"
+                        className="w-full px-2 py-1.5 pr-8 rounded-md border border-surface-border bg-surface-700 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent-cyan/40"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSecret((s) => !s)}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 text-surface-muted hover:text-surface-text transition-colors"
+                        aria-label={showSecret ? "Hide secret" : "Show secret"}
+                      >
+                        {showSecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </section>
