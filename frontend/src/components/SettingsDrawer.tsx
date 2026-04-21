@@ -68,12 +68,12 @@ function SecurityConfirm({ onConfirm, onCancel }: { onConfirm: () => void; onCan
 
             <section className="rounded-md border border-accent-amber/30 bg-accent-amber/5 p-3">
               <div className="flex items-center gap-1.5 font-semibold text-[11px] text-accent-amber">
-                <AlertTriangle className="w-3.5 h-3.5" /> Your responsibility
+                <AlertTriangle className="w-3.5 h-3.5" /> App registration considerations
               </div>
-              <p className="mt-1.5 text-surface-text">
-                We recommend using a dedicated Entra ID app registration with only{" "}
-                <span className="font-mono">Policy.Read.All</span> permission. Do not reuse an app registration with broader permissions.
-              </p>
+              <ul className="mt-1.5 list-disc pl-4 space-y-1 text-surface-text">
+                <li>Use a dedicated app registration with only <span className="font-mono">Policy.Read.All</span>.</li>
+                <li>After testing, delete the app registration or revoke its permissions and client secret.</li>
+              </ul>
             </section>
           </div>
 

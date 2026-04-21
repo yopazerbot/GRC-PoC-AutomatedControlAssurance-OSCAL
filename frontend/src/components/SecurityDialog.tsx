@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, HardDrive, Lock, ShieldCheck, AlertTriangle } from "lucide-react";
+import { X, HardDrive, Lock, ShieldCheck, AlertTriangle, Globe } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -107,13 +107,40 @@ export function SecurityDialog({ open, onClose }: Props) {
                   </ul>
                 </Section>
 
-                <Section icon={AlertTriangle} title="Your responsibility" tone="amber">
-                  <p>
-                    We recommend registering a <strong>dedicated</strong> Entra ID app registration with only the{" "}
-                    <span className="font-mono">Policy.Read.All</span> application permission. This grants read-only
-                    access to Conditional Access policies and nothing else. Do not reuse an app registration that has
-                    broader permissions.
-                  </p>
+                <Section icon={Globe} title="Transport & cloud deployment" tone="cyan">
+                  <ul className="list-disc pl-4 space-y-1 mt-1">
+                    <li>
+                      When deployed on Railway (or any cloud host), all traffic is encrypted via TLS/HTTPS.
+                      Credentials in the POST body are encrypted in transit between your browser and the server.
+                    </li>
+                    <li>
+                      Railway containers are ephemeral — there is no persistent filesystem. On redeploy or restart, all in-memory run history is cleared.
+                    </li>
+                    <li>
+                      Set the <span className="font-mono">API_TOKEN</span> environment variable on Railway to require Bearer authentication,
+                      preventing unauthorized access to the API.
+                    </li>
+                    <li>
+                      CORS is locked to same-origin by default. Set <span className="font-mono">CORS_ORIGINS</span> only if you need cross-origin access.
+                    </li>
+                  </ul>
+                </Section>
+
+                <Section icon={AlertTriangle} title="App registration considerations" tone="amber">
+                  <ul className="list-disc pl-4 space-y-1 mt-1">
+                    <li>
+                      Create a <strong>dedicated</strong> Entra ID app registration with only the{" "}
+                      <span className="font-mono">Policy.Read.All</span> application permission. This grants read-only
+                      access to Conditional Access policies and nothing else.
+                    </li>
+                    <li>
+                      Do not reuse an app registration that has broader permissions.
+                    </li>
+                    <li>
+                      After testing, we recommend <strong>deleting the app registration</strong> or at minimum revoking
+                      its permissions and client secret. This demo does not require persistent access to your tenant.
+                    </li>
+                  </ul>
                 </Section>
               </div>
 
