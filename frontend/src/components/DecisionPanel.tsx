@@ -21,17 +21,18 @@ export default function DecisionPanel({ state, run }: Props) {
 
         {run && (
           <>
-            <StatusBadge
-              kind="status"
-              value={run.outcome === "pass" ? "PASS" : "FAIL"}
-              size="lg"
-            />
-
-            <StatusBadge
-              kind="risk"
-              value={hasRisk ? "HIGH" : "NONE"}
-              size="md"
-            />
+            <div className="flex items-center gap-2">
+              <StatusBadge
+                kind="status"
+                value={run.outcome === "pass" ? "PASS" : "FAIL"}
+                size="lg"
+              />
+              <StatusBadge
+                kind="risk"
+                value={hasRisk ? "HIGH" : "NONE"}
+                size="lg"
+              />
+            </div>
 
             <p className="text-xs text-surface-muted leading-relaxed max-w-xs">
               {run.outcome === "pass"

@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import hashlib
+import io
 import json
 import os
+import zipfile
 from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from security import AuthMiddleware, RateLimitMiddleware
@@ -147,6 +150,41 @@ async def get_run(run_id: str):
         "assessment_results": run.assessment_results,
         "sanitized_evidence": run.sanitized_evidence,
     }
+
+
+@app.get("/api/runs/{run_id}/bundle")
+async def download_bundle(run_id: str):
+    run = run_store.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found.")
+
+    files: dict[str, bytes] = {}
+    for key, (filename, _, _) in ARTIFACT_MAP.items():
+        files[filename] = (OSCAL_DIR / filename).read_bytes()
+    ar_json = json.dumps(run.assessment_results, indent=2).encode()
+    files["assessment-results.json"] = ar_json
+
+    hashes: dict[str, str] = {}
+    for name, content in files.items():
+        hashes[name] = hashlib.sha256(content).hexdigest()
+    manifest = "SHA-256 verification hashes\n" + "=" * 40 + "\n\n"
+    for name in sorted(hashes):
+        manifest += f"{hashes[name]}  {name}\n"
+    manifest += f"\nGenerated: {run.timestamp}\nRun ID: {run.run_id}\n"
+    files["SHA256SUMS.txt"] = manifest.encode()
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name, content in sorted(files.items()):
+            zf.writestr(f"oscal-bundle/{name}", content)
+    buf.seek(0)
+
+    filename = f"oscal-bundle-{run_id[:8]}.zip"
+    return StreamingResponse(
+        buf,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 if STATIC_DIR.is_dir() and (STATIC_DIR / "index.html").is_file():

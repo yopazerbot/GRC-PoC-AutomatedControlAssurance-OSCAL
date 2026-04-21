@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download } from "lucide-react";
+import { FileArchive } from "lucide-react";
 import { PanelShell, type PanelState } from "./PanelShell";
 import { StatusBadge } from "./StatusBadge";
 import { CodeSnippet } from "./CodeSnippet";
@@ -8,16 +8,6 @@ import type { RunDetail } from "../types";
 interface Props {
   state: PanelState;
   run: RunDetail | null;
-}
-
-function downloadJson(data: unknown, filename: string) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 function buildSnippet(run: RunDetail | null) {
@@ -89,15 +79,16 @@ export default function OscalResultPanel({ state, run }: Props) {
               <StatusBadge
                 kind="status"
                 value={run.outcome === "pass" ? "PASS" : "FAIL"}
-                size="lg"
+                size="md"
               />
-              <button
-                onClick={() => downloadJson(run.assessment_results, `assessment-results-${run.run_id.slice(0, 8)}.json`)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-surface-border bg-surface-700 hover:bg-surface-600 transition-colors text-[10px] font-medium text-surface-muted hover:text-surface-text"
+              <a
+                href={`/api/runs/${run.run_id}/bundle`}
+                download
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-accent-cyan/40 bg-accent-cyan/10 text-accent-cyan text-xs font-semibold uppercase tracking-wider hover:brightness-110 transition-colors"
               >
-                <Download className="w-3 h-3" />
-                Download OSCAL
-              </button>
+                <FileArchive className="w-3 h-3" />
+                Download OSCAL (audit evidence)
+              </a>
             </div>
 
             <div className="space-y-1 text-[10px] text-surface-muted font-mono">
