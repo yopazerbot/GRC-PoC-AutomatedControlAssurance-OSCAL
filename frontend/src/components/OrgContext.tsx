@@ -1,6 +1,7 @@
 import { Globe, Server, Database } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { RunSummary } from "../types";
+import { getStoredCredentials } from "../api";
 
 interface PillProps {
   icon: LucideIcon;
@@ -32,15 +33,7 @@ interface Props {
 }
 
 export function OrgContext({ runs, apiOk }: Props) {
-  const tenantId = (() => {
-    const raw = sessionStorage.getItem("entra_credentials");
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw).tenant_id as string;
-    } catch {
-      return null;
-    }
-  })();
+  const tenantId = getStoredCredentials()?.tenant_id ?? null;
 
   return (
     <div className="flex items-center gap-2 px-4 h-10 border-b border-surface-border bg-surface-800/60 shrink-0 overflow-x-auto">

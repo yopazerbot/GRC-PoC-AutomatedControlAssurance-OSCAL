@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShieldCheck, Eye, EyeOff, HardDrive, Lock, AlertTriangle } from "lucide-react";
-import { saveCredentials, clearCredentials, hasCredentials, triggerRun } from "../api";
-import type { Credentials } from "../types";
+import { saveCredentials, clearCredentials, hasCredentials, getStoredCredentials, triggerRun } from "../api";
 
 const ACK_KEY = "grc-lab-security-ack-v1";
 
@@ -110,14 +109,11 @@ export default function SettingsDrawer({ open, onClose }: Props) {
   useEffect(() => {
     if (open) {
       setHasCreds(hasCredentials());
-      const raw = sessionStorage.getItem("entra_credentials");
-      if (raw) {
-        try {
-          const c = JSON.parse(raw) as Credentials;
-          setTenantId(c.tenant_id);
-          setClientId(c.client_id);
-          setClientSecret(c.client_secret);
-        } catch {}
+      const c = getStoredCredentials();
+      if (c) {
+        setTenantId(c.tenant_id);
+        setClientId(c.client_id);
+        setClientSecret(c.client_secret);
       }
     }
   }, [open]);

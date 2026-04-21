@@ -1,5 +1,7 @@
 import type { Mode, Credentials, RunDetail, RunSummary, ArtifactMeta } from "./types";
 
+const CRED_KEY = "entra_credentials_b64";
+
 function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const token = sessionStorage.getItem("api_token");
@@ -8,25 +10,29 @@ function getHeaders(): Record<string, string> {
 }
 
 function getCredentials(): Credentials | null {
-  const raw = sessionStorage.getItem("entra_credentials");
-  if (!raw) return null;
+  const encoded = sessionStorage.getItem(CRED_KEY);
+  if (!encoded) return null;
   try {
-    return JSON.parse(raw);
+    return JSON.parse(atob(encoded));
   } catch {
     return null;
   }
 }
 
 export function saveCredentials(creds: Credentials): void {
-  sessionStorage.setItem("entra_credentials", JSON.stringify(creds));
+  sessionStorage.setItem(CRED_KEY, btoa(JSON.stringify(creds)));
 }
 
 export function clearCredentials(): void {
-  sessionStorage.removeItem("entra_credentials");
+  sessionStorage.removeItem(CRED_KEY);
 }
 
 export function hasCredentials(): boolean {
   return getCredentials() !== null;
+}
+
+export function getStoredCredentials(): Credentials | null {
+  return getCredentials();
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
