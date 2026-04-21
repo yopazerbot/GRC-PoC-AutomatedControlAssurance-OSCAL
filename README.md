@@ -1,8 +1,8 @@
-# GRC Proof of Concept - Automated Control Assurance using NIST OSCAL
+# GRC Proof of Concept — Automated Control Assurance using NIST OSCAL
 
 **Prove your security controls work. Automatically. In real time.**
 
-This is an open-source proof of concept that automates the entire compliance control lifecycle for the control "enforce MFA for Guests in Entra" — from evidence collection to audit-ready OSCAL artifacts — in a single container. No spreadsheets. No screenshots. No manual evidence gathering.
+This is an open-source proof of concept that automates the entire compliance control lifecycle — from evidence collection to audit-ready OSCAL artifacts — in a single container. No spreadsheets. No screenshots. No manual evidence gathering.
 
 ## The Problem
 
@@ -10,7 +10,7 @@ Organisations spend thousands of hours per year manually collecting evidence for
 
 ## The Solution
 
-GRC Lab connects directly to your Microsoft Entra ID tenant, evaluates your security controls against ISO 27001 requirements, and produces machine-readable [NIST OSCAL](https://pages.nist.gov/OSCAL/) artifacts — the emerging standard for automated compliance documentation.
+GRC Lab connects directly to your Microsoft Entra ID tenant, evaluates your Conditional Access policies, and produces machine-readable [NIST OSCAL](https://pages.nist.gov/OSCAL/) artifacts — the emerging standard for automated compliance documentation.
 
 **One click. Real evidence. Valid OSCAL.**
 
@@ -20,13 +20,24 @@ This demo evaluates a single control to prove the concept end-to-end:
 
 | | |
 |---|---|
-| **Standard** | ISO/IEC 27001:2022 |
-| **Control** | Annex A 8.5 — Secure Authentication |
-| **Scope** | Guest users must be protected by MFA via Conditional Access |
+| **Control** | Enforce MFA for guest users via Conditional Access |
 | **Evidence source** | Microsoft Entra ID via Microsoft Graph API |
 | **Output** | OSCAL 1.1.3 Assessment Results with full traceability |
 
-The complete OSCAL chain is generated: **Catalog > Profile > SSP > Assessment Plan > Assessment Results**.
+The complete OSCAL chain is generated: **Catalog > Profile > SSP > Assessment Plan > Assessment Results** — downloadable as a zip bundle with SHA-256 hash verification.
+
+## Dashboard
+
+Six-panel dashboard with a 6-phase animated flow: **Control > Evidence > Evaluation > OSCAL > Summary > History**
+
+- **Control Definition** — ISO 27001 A.8.5 scope and objective
+- **Evidence Collection** — Conditional Access policies with state, dates, and policy ID
+- **Evaluation** — Four-criteria checklist (policy exists, targets guests, enabled, requires MFA)
+- **OSCAL Artifacts** — Generated assessment results with download button
+- **Summary** — Pass/fail outcome with evidence basis
+- **History** — Run history with duration bar chart, clickable entries
+
+Three scenarios: **Mock Pass**, **Mock Fail**, and **Live** (real Entra ID tenant).
 
 ## Quick Start
 
@@ -36,69 +47,46 @@ docker compose up --build
 
 Open the dashboard at the URL shown in the terminal. Click **Run** to execute the pipeline with mock data — no Azure credentials needed.
 
-## Live Mode (Real Entra ID)
+## Live Mode
 
-To evaluate a real tenant:
+1. Register a **dedicated** app in Azure Entra ID with only `Policy.Read.All` (application permission) + admin consent
+2. Open Settings in the dashboard, enter Tenant ID, Client ID, and Client Secret
+3. Acknowledge the security prompt — the app switches to Live mode automatically
+4. Click **Run** to query your real Conditional Access policies
+5. After testing, delete the app registration or revoke its permissions
 
-1. Register an app in Azure Entra ID
-2. Grant **Policy.Read.All** application permission + admin consent
-3. Open Settings in the dashboard, enter your credentials
-4. The app automatically switches to Live mode
-5. Click **Run** to query your real Conditional Access policies
+## Security
 
-## Security Architecture
+This app is designed to be safe for public deployment where untrusted users supply their own Entra credentials.
 
-This application is designed to be safe for public deployment where untrusted users supply their own Entra credentials. Security is the top priority.
-
-### Zero server-side credential storage
-
-- The backend has **no database** — no SQLite, no Redis, no filesystem writes for credential data
-- The server is fully stateless for credentials: they exist in memory only during the single HTTP request that calls the Graph API, then are discarded
-- Credentials are never written to logs, stdout, stderr, environment variables, or any API response — not even in masked form
-- Assessment run history is held in-memory (capped at 50 entries) and cleared on container restart
-
-### Browser-side credential lifecycle
-
-- Credentials are stored in `sessionStorage` only — automatically cleared when the browser tab closes
-- They are never written to `localStorage`, cookies, or IndexedDB
-- The frontend sends credentials exclusively in the POST body of `/api/runs` requests — never in headers, query params, or to any other endpoint
-
-### Evidence sanitization
-
-- All evidence returned from Microsoft Graph is scrubbed before inclusion in any API response or OSCAL document
-- Fields matching patterns like `*secret*`, `*password*`, `*token*` (case-insensitive) are replaced with `[REDACTED]`
-- This applies regardless of mode (live or mock)
-
-### API hardening
-
-- **Authentication**: Optional `API_TOKEN` env var enables Bearer token auth on all `/api/*` routes (except `/api/health`)
-- **CORS**: Configurable via `CORS_ORIGINS` env var, defaults to same-origin only
-- **Rate limiting**: Maximum 1 concurrent pipeline run per process (HTTP 429 if a run is already in progress)
-- **No credential echo**: Credentials are never included in any API response
-
-### Container security
-
-- Docker image runs as non-root user (UID 1000)
-- No secrets baked into the image; `.env` is excluded via `.dockerignore`
-- Health check endpoint at `GET /api/health`
+| Layer | How it works |
+|---|---|
+| **Storage** | No database. Credentials are never written to any file, log, cache, or environment variable. Run history is in-memory only (max 50, cleared on restart). |
+| **Browser** | Credentials stored in `sessionStorage` (base64-encoded), cleared when the tab closes. Never sent to `localStorage`, cookies, or any endpoint other than `POST /api/runs`. |
+| **Server** | Credentials exist as function parameters for one HTTP request — used for a single OAuth2 token call to Microsoft, then garbage-collected. Never returned in any API response. |
+| **Evidence** | All Graph API responses are scrubbed: fields matching `*secret*`, `*password*`, `*token*` are replaced with `[REDACTED]`. |
+| **API** | Optional `API_TOKEN` env var for Bearer auth. Rate limited to 1 concurrent run (HTTP 429). CORS same-origin by default. Path traversal protection on static file serving. |
+| **Container** | Non-root user (UID 1000). No secrets in the image. `.env` excluded via `.dockerignore`. |
+| **Transport** | Railway (or any cloud host) terminates TLS at the edge — credentials encrypted in transit. |
 
 ## Railway Deployment
 
 1. Push this repo to GitHub
-2. Create a new project on [Railway](https://railway.app)
-3. Connect the GitHub repo — Railway detects the `Dockerfile` automatically
-4. Optionally set `API_TOKEN` and `CORS_ORIGINS` environment variables
+2. Create a new project on [Railway](https://railway.app) — it detects the Dockerfile automatically
+3. Set `API_TOKEN` environment variable to require authentication
 
 ## API
 
 | Method | Route | Purpose |
-|--------|-------|---------|
-| GET | `/api/health` | Liveness check |
-| GET | `/api/artifacts` | List static OSCAL artifacts (catalog, profile, SSP, assessment plan) |
-| GET | `/api/artifacts/{type}` | Get full OSCAL document |
-| POST | `/api/runs` | Execute the compliance pipeline |
-| GET | `/api/runs` | List recent run summaries (max 50) |
-| GET | `/api/runs/{run_id}` | Full run detail with OSCAL Assessment Results |
+|---|---|---|
+| `GET` | `/api/health` | Liveness check |
+| `GET` | `/api/artifacts` | List static OSCAL artifacts |
+| `GET` | `/api/artifacts/{type}` | Full OSCAL document |
+| `POST` | `/api/runs` | Execute the pipeline |
+| `GET` | `/api/runs` | Recent run summaries (max 50) |
+| `GET` | `/api/runs/{run_id}` | Full run detail with OSCAL results |
+| `GET` | `/api/runs/{run_id}/bundle` | Download OSCAL zip bundle with SHA-256 hashes |
+| `DELETE` | `/api/runs` | Clear run history |
 
 ## Architecture
 
