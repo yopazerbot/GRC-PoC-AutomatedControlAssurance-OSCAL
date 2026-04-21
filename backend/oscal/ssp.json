@@ -1,0 +1,97 @@
+{
+  "system-security-plan": {
+    "uuid": "a1b2c3d4-1111-4000-8000-000000000003",
+    "metadata": {
+      "title": "System Security Plan - Microsoft Entra ID MFA for Guest Users",
+      "last-modified": "2025-01-15T00:00:00Z",
+      "version": "1.0.0",
+      "oscal-version": "1.1.3",
+      "roles": [
+        {
+          "id": "system-owner",
+          "title": "System Owner"
+        }
+      ],
+      "parties": [
+        {
+          "uuid": "a1b2c3d4-2222-4000-8000-000000000001",
+          "type": "organization",
+          "name": "GRC-OSCAL Demo"
+        }
+      ]
+    },
+    "import-profile": {
+      "href": "profile.json"
+    },
+    "system-characteristics": {
+      "system-ids": [
+        {
+          "id": "grc-oscal-entra-mfa"
+        }
+      ],
+      "system-name": "Microsoft Entra ID - Conditional Access MFA Enforcement",
+      "description": "Microsoft Entra ID tenant configured with Conditional Access policies to enforce multi-factor authentication for guest and external users accessing tenant resources.",
+      "security-sensitivity-level": "moderate",
+      "system-information": {
+        "information-types": [
+          {
+            "uuid": "a1b2c3d4-3333-4000-8000-000000000001",
+            "title": "Identity and Access Management Configuration",
+            "description": "Conditional Access policy configuration controlling authentication requirements for guest users.",
+            "confidentiality-impact": {
+              "base": "moderate"
+            },
+            "integrity-impact": {
+              "base": "moderate"
+            },
+            "availability-impact": {
+              "base": "low"
+            }
+          }
+        ]
+      },
+      "security-impact-level": {
+        "security-objective-confidentiality": "moderate",
+        "security-objective-integrity": "moderate",
+        "security-objective-availability": "low"
+      },
+      "status": {
+        "state": "operational"
+      },
+      "authorization-boundary": {
+        "description": "Microsoft Entra ID tenant Conditional Access policies governing guest user authentication."
+      }
+    },
+    "system-implementation": {
+      "users": [
+        {
+          "uuid": "a1b2c3d4-4444-4000-8000-000000000001",
+          "title": "Guest Users",
+          "description": "External users invited to the tenant who access organizational resources.",
+          "role-ids": ["system-owner"]
+        }
+      ],
+      "components": [
+        {
+          "uuid": "a1b2c3d4-5555-4000-8000-000000000001",
+          "type": "service",
+          "title": "Microsoft Entra ID Conditional Access",
+          "description": "Cloud-based identity service providing Conditional Access policies that enforce MFA requirements on guest users before granting access to tenant resources.",
+          "status": {
+            "state": "operational"
+          }
+        }
+      ]
+    },
+    "control-implementation": {
+      "description": "Implementation of ISO 27001:2022 Annex A 8.5 via Microsoft Entra ID Conditional Access.",
+      "implemented-requirements": [
+        {
+          "uuid": "a1b2c3d4-6666-4000-8000-000000000001",
+          "control-id": "a-8-5",
+          "description": "Guest users accessing tenant resources are required to complete multi-factor authentication via a Conditional Access policy in Microsoft Entra ID. The policy targets all guest and external user types, applies to all cloud applications, and enforces MFA as a required grant control. The policy is in the 'enabled' state, ensuring active enforcement rather than report-only mode."
+        }
+      ]
+    }
+  }
+}

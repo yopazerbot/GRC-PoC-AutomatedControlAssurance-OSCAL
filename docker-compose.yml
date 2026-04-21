@@ -1,0 +1,10 @@
+services:
+  grc-oscal:
+    build: .
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    environment:
+      - PORT=${PORT:-8000}
+      - API_TOKEN=${API_TOKEN:-}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
+    restart: unless-stopped

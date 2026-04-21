@@ -1,0 +1,50 @@
+{
+  "value": [
+    {
+      "id": "fa01997e-3c0a-4fb2-89a3-c51e90221e79",
+      "displayName": "Require MFA for Guest Users",
+      "createdDateTime": "2024-06-15T09:30:00Z",
+      "modifiedDateTime": "2025-01-10T14:22:00Z",
+      "state": "disabled",
+      "conditions": {
+        "users": {
+          "includeUsers": [],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "excludeGroups": [],
+          "includeGuestsOrExternalUsers": {
+            "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser",
+            "externalTenants": {
+              "membershipKind": "all"
+            }
+          }
+        },
+        "applications": {
+          "includeApplications": [
+            "All"
+          ],
+          "excludeApplications": []
+        },
+        "clientAppTypes": [
+          "browser",
+          "mobileAppsAndDesktopClients"
+        ]
+      },
+      "grantControls": {
+        "operator": "OR",
+        "builtInControls": [
+          "mfa"
+        ],
+        "customAuthenticationFactors": [],
+        "termsOfUse": []
+      },
+      "sessionControls": {
+        "signInFrequency": {
+          "value": 4,
+          "type": "hours",
+          "isEnabled": true
+        }
+      }
+    }
+  ]
+}

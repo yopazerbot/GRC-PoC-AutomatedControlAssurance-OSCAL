@@ -1,0 +1,108 @@
+{
+  "assessment-plan": {
+    "uuid": "a1b2c3d4-1111-4000-8000-000000000004",
+    "metadata": {
+      "title": "Assessment Plan - MFA Enforcement for Guest Users",
+      "last-modified": "2025-01-15T00:00:00Z",
+      "version": "1.0.0",
+      "oscal-version": "1.1.3",
+      "roles": [
+        {
+          "id": "assessor",
+          "title": "Automated Assessor"
+        }
+      ],
+      "parties": [
+        {
+          "uuid": "a1b2c3d4-2222-4000-8000-000000000001",
+          "type": "organization",
+          "name": "GRC-OSCAL Demo"
+        }
+      ]
+    },
+    "import-ssp": {
+      "href": "ssp.json"
+    },
+    "local-definitions": {
+      "activities": [
+        {
+          "uuid": "a1b2c3d4-7777-4000-8000-000000000001",
+          "title": "Query Conditional Access Policies",
+          "description": "Authenticate to Microsoft Graph API using client credentials and retrieve all Conditional Access policies from the target tenant.",
+          "steps": [
+            {
+              "uuid": "a1b2c3d4-7777-4000-8000-000000000011",
+              "title": "Authenticate to Microsoft Graph",
+              "description": "Obtain an OAuth2 access token using client credentials flow against the Microsoft identity platform token endpoint."
+            },
+            {
+              "uuid": "a1b2c3d4-7777-4000-8000-000000000012",
+              "title": "Fetch Conditional Access Policies",
+              "description": "Call GET /identity/conditionalAccess/policies on Microsoft Graph v1.0 API to retrieve all Conditional Access policy definitions."
+            }
+          ],
+          "related-controls": {
+            "control-selections": [
+              {
+                "include-controls": [
+                  {
+                    "control-id": "a-8-5"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "uuid": "a1b2c3d4-7777-4000-8000-000000000002",
+          "title": "Evaluate MFA Enforcement for Guests",
+          "description": "Analyze the retrieved Conditional Access policies to determine whether at least one enabled policy requires MFA for guest or external users.",
+          "steps": [
+            {
+              "uuid": "a1b2c3d4-7777-4000-8000-000000000021",
+              "title": "Check Policy Existence",
+              "description": "Verify that at least one Conditional Access policy exists in the tenant."
+            },
+            {
+              "uuid": "a1b2c3d4-7777-4000-8000-000000000022",
+              "title": "Check Guest User Targeting",
+              "description": "Verify that the policy targets guest or external users via conditions.users.includeGuestsOrExternalUsers or equivalent configuration."
+            },
+            {
+              "uuid": "a1b2c3d4-7777-4000-8000-000000000023",
+              "title": "Check Policy State",
+              "description": "Verify that the policy state is 'enabled', not 'disabled' or 'enabledForReportingButNotEnforced'."
+            },
+            {
+              "uuid": "a1b2c3d4-7777-4000-8000-000000000024",
+              "title": "Check MFA Grant Control",
+              "description": "Verify that the policy's grantControls.builtInControls array contains 'mfa'."
+            }
+          ],
+          "related-controls": {
+            "control-selections": [
+              {
+                "include-controls": [
+                  {
+                    "control-id": "a-8-5"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "reviewed-controls": {
+      "control-selections": [
+        {
+          "include-controls": [
+            {
+              "control-id": "a-8-5"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

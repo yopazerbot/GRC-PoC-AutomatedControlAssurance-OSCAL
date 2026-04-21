@@ -1,0 +1,54 @@
+{
+  "catalog": {
+    "uuid": "a1b2c3d4-1111-4000-8000-000000000001",
+    "metadata": {
+      "title": "ISO/IEC 27001:2022 - Selected Controls for Automated Assurance",
+      "last-modified": "2025-01-15T00:00:00Z",
+      "version": "1.0.0",
+      "oscal-version": "1.1.3",
+      "roles": [
+        {
+          "id": "publisher",
+          "title": "Document Publisher"
+        }
+      ],
+      "parties": [
+        {
+          "uuid": "a1b2c3d4-2222-4000-8000-000000000001",
+          "type": "organization",
+          "name": "GRC-OSCAL Demo"
+        }
+      ]
+    },
+    "groups": [
+      {
+        "id": "annex-a-8",
+        "title": "Annex A.8 - Technological Controls",
+        "controls": [
+          {
+            "id": "a-8-5",
+            "title": "A.8.5 Secure Authentication",
+            "class": "ISO27001",
+            "parts": [
+              {
+                "id": "a-8-5_obj",
+                "name": "objective",
+                "prose": "Secure authentication technologies and procedures shall be established and implemented based on information access restrictions and the topic-specific policy on access control."
+              },
+              {
+                "id": "a-8-5_gdn",
+                "name": "guidance",
+                "prose": "Authentication information should be protected against unauthorized access. Multi-factor authentication should be implemented for access to information systems and applications where the risk assessment warrants stronger authentication. Guest and external users accessing organizational resources must be subject to the same or stricter authentication requirements as internal users."
+              },
+              {
+                "id": "a-8-5_scope",
+                "name": "scope",
+                "prose": "Guest users accessing tenant resources MUST be protected by MFA via Conditional Access policies in Microsoft Entra ID."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

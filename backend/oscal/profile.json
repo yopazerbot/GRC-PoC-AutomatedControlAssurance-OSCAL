@@ -1,0 +1,36 @@
+{
+  "profile": {
+    "uuid": "a1b2c3d4-1111-4000-8000-000000000002",
+    "metadata": {
+      "title": "GRC-OSCAL Demo - MFA Guest Enforcement Profile",
+      "last-modified": "2025-01-15T00:00:00Z",
+      "version": "1.0.0",
+      "oscal-version": "1.1.3",
+      "roles": [
+        {
+          "id": "author",
+          "title": "Profile Author"
+        }
+      ],
+      "parties": [
+        {
+          "uuid": "a1b2c3d4-2222-4000-8000-000000000001",
+          "type": "organization",
+          "name": "GRC-OSCAL Demo"
+        }
+      ]
+    },
+    "imports": [
+      {
+        "href": "catalog.json",
+        "include-controls": [
+          {
+            "with-ids": [
+              "a-8-5"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
