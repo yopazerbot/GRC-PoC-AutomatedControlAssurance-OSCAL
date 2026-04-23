@@ -8,7 +8,7 @@ import zipfile
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
@@ -184,8 +184,10 @@ if STATIC_DIR.is_dir() and (STATIC_DIR / "index.html").is_file():
     app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
 
     @app.get("/")
-    async def serve_index():
-        notify_visit()
+    async def serve_index(request: Request):
+        fwd = request.headers.get("x-forwarded-for", "")
+        ip = fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else None)
+        notify_visit(ip)
         return FileResponse(STATIC_DIR / "index.html")
 
     @app.get("/{full_path:path}")

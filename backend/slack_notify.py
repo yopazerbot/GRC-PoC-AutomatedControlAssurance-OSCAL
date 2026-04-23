@@ -25,6 +25,7 @@ def _send(text: str) -> None:
     threading.Thread(target=_post, daemon=True).start()
 
 
-def notify_visit() -> None:
+def notify_visit(ip: str | None = None) -> None:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    _send(f":eyes: *GRC Lab* — someone visited the demo | {now}")
+    ip_part = f" | IP `{ip}`" if ip else ""
+    _send(f":eyes: *GRC Lab* — someone visited the demo | {now}{ip_part}")
