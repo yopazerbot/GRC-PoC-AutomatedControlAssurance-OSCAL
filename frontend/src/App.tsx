@@ -17,6 +17,7 @@ import DecisionPanel from "./components/DecisionPanel";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { PhaseControls } from "./components/PhaseControls";
 import SettingsDrawer from "./components/SettingsDrawer";
+import LiveCredentialsPrompt from "./components/LiveCredentialsPrompt";
 
 const THEME_KEY = "grc-lab-theme";
 
@@ -33,6 +34,7 @@ export default function App() {
     return stored ? stored === "dark" : false;
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [credsPromptOpen, setCredsPromptOpen] = useState(false);
   const [selectedMode, setSelectedMode] = useState<Mode>("mock-pass");
   const [apiOk, setApiOk] = useState(true);
   const pipeline = usePipeline();
@@ -52,6 +54,14 @@ export default function App() {
     if (hasCredentials()) {
       setSelectedMode("live");
     }
+  }, []);
+
+  const handleModeChange = useCallback((mode: Mode) => {
+    if (mode === "live" && !hasCredentials()) {
+      setCredsPromptOpen(true);
+      return;
+    }
+    setSelectedMode(mode);
   }, []);
 
   const handleRun = useCallback(() => {
@@ -86,7 +96,7 @@ export default function App() {
       />
       <PublicDemoBanner onOpenSettings={() => setSettingsOpen(true)} />
       <OrgContext runs={pipeline.runs} apiOk={apiOk} />
-      <ScenarioSelector current={selectedMode} onChange={setSelectedMode} />
+      <ScenarioSelector current={selectedMode} onChange={handleModeChange} />
       <FlowTimeline currentIndex={pi} onJump={pipeline.jumpToPhase} />
 
       <main className="grid grid-cols-1 gap-3 p-3 lg:flex-1 lg:min-h-0 lg:grid-cols-4 lg:grid-rows-[1fr_1fr] lg:overflow-hidden">
@@ -129,6 +139,14 @@ export default function App() {
       />
 
       <SettingsDrawer open={settingsOpen} onClose={handleSettingsClose} />
+      <LiveCredentialsPrompt
+        open={credsPromptOpen}
+        onOpenSettings={() => {
+          setCredsPromptOpen(false);
+          setSettingsOpen(true);
+        }}
+        onCancel={() => setCredsPromptOpen(false)}
+      />
     </div>
   );
 }
