@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, HardDrive, Lock, ShieldCheck, AlertTriangle, Globe } from "lucide-react";
+import { X, HardDrive, Lock, ShieldCheck, AlertTriangle, Globe, Database } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -71,11 +71,51 @@ export function SecurityDialog({ open, onClose }: Props) {
               <div className="px-5 py-4 space-y-4 text-xs leading-relaxed">
                 <Section icon={HardDrive} title="Zero server-side credential storage" tone="emerald">
                   <p>
-                    This application has <strong>no database</strong> — no SQLite, no Redis, no filesystem writes
-                    for credential data. Your <span className="font-mono">tenant_id</span>,{" "}
-                    <span className="font-mono">client_id</span>, and <span className="font-mono">client_secret</span>{" "}
-                    are never stored on the server in any form. Run history (assessment results, sanitized evidence)
-                    is held in process memory only, capped at 50 entries, and cleared on container restart.
+                    Your <span className="font-mono">tenant_id</span>, <span className="font-mono">client_id</span>,
+                    and <span className="font-mono">client_secret</span> are never written to disk, logs, caches, or
+                    any database — not in any form, not even masked. No SQLite, no Redis, no environment-variable
+                    persistence. The audit store described below holds <em>only</em> compliance run results; it
+                    is wired so that credentials, evidence, and any field fetched from Microsoft Graph
+                    cannot reach it.
+                  </p>
+                </Section>
+
+                <Section icon={Database} title="Audit store — data minimisation" tone="emerald">
+                  <p className="mb-2">
+                    An <strong>immudb</strong> sidecar (append-only, cryptographically verifiable) stores each
+                    pipeline run so the Audit trail drawer can show an outcomes histogram and a tamper-evident
+                    history. Because writes to immudb are effectively permanent, the server operates on a strict
+                    allowlist — only structural, server-generated fields are persisted.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-2 mt-2">
+                    <div className="rounded border border-accent-emerald/30 p-2">
+                      <div className="text-[10px] uppercase tracking-wider font-semibold text-accent-emerald mb-1">
+                        Stored per run
+                      </div>
+                      <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
+                        <li>random server-generated run id</li>
+                        <li>mode, outcome, duration, timestamp</li>
+                        <li>control id, finding state, summary</li>
+                        <li>per-criterion name / passed / reason</li>
+                      </ul>
+                    </div>
+                    <div className="rounded border border-accent-red/30 p-2">
+                      <div className="text-[10px] uppercase tracking-wider font-semibold text-accent-red mb-1">
+                        Never stored
+                      </div>
+                      <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
+                        <li>tenant id, client id, client secret</li>
+                        <li>the full OSCAL assessment-results JSON</li>
+                        <li>raw / sanitized evidence (policy bodies)</li>
+                        <li>display names, emails, IPs, user IDs</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <p className="mt-2">
+                    A defence-in-depth <span className="font-mono">_assert_no_pii</span> guard rejects any write
+                    whose allowlist values match email / GUID / IP / known-PII substring patterns. Persistence
+                    is best-effort: if immudb is unreachable the pipeline still completes successfully and only
+                    the audit trail drawer goes dark.
                   </p>
                 </Section>
 
@@ -153,8 +193,14 @@ export function SecurityDialog({ open, onClose }: Props) {
                       application is encrypted via HTTPS. Credentials in the POST body are encrypted in transit.
                     </li>
                     <li>
-                      Railway containers have an ephemeral filesystem. There is no persistent disk.
-                      On every redeploy or restart, all in-memory run history is cleared.
+                      The app container itself has an ephemeral filesystem; no credentials or evidence survive
+                      a redeploy. The immudb sidecar runs as a separate service with its own volume and
+                      lives only on Railway's private network — it has no public domain and is unreachable
+                      from the internet.
+                    </li>
+                    <li>
+                      Run-result rows in immudb survive redeploys (that's the point). Credentials, evidence,
+                      and tenant identifiers do not, because they are never sent there.
                     </li>
                   </ul>
                 </Section>
