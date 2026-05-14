@@ -46,10 +46,10 @@ function SecurityConfirm({ onConfirm, onCancel }: { onConfirm: () => void; onCan
           <div className="px-5 py-4 space-y-3 text-xs leading-relaxed">
             <section className="rounded-md border border-accent-emerald/30 bg-accent-emerald/5 p-3">
               <div className="flex items-center gap-1.5 font-semibold text-[11px] text-accent-emerald">
-                <HardDrive className="w-3.5 h-3.5" /> Zero server-side storage
+                <HardDrive className="w-3.5 h-3.5" /> Zero server-side credential storage
               </div>
               <p className="mt-1.5 text-surface-text">
-                This application has no database. Your credentials are never written to any file, log, cache, or environment variable on the server.
+                Your credentials are never written to any file, log, cache, environment variable, or database on the server. The audit store (immudb) records only run results — never your tenant id, client id, secret, or evidence fetched from Microsoft Graph.
               </p>
             </section>
 
