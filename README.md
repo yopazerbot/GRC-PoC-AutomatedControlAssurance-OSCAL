@@ -39,6 +39,11 @@ Six-panel dashboard with a 6-phase animated flow: **Control > Evidence > Evaluat
 
 Three scenarios: **Mock Pass**, **Mock Fail**, and **Live** (real Entra ID tenant).
 
+A dedicated **Audit trail** drawer (database icon in the header) surfaces the
+immudb-backed compliance history: an outcomes-over-time histogram (pass vs
+fail, bucketed by hour or day), a list of persisted runs, and the
+allowlisted record stored for each run.
+
 ## Quick Start
 
 ```bash
@@ -61,31 +66,58 @@ This app is designed to be safe for public deployment where untrusted users supp
 
 | Layer | How it works |
 |---|---|
-| **Storage** | No database. Credentials are never written to any file, log, cache, or environment variable. Run history is in-memory only (max 50, cleared on restart). |
+| **Storage** | Credentials are never written to any file, log, cache, or environment variable. The optional immudb audit store persists **only run results** (run id, mode, outcome, duration, timestamp, control id, finding state, summary, per-criterion result) — no tenant info, no evidence, no PII. See _Audit store_ below. |
 | **Browser** | Credentials stored in `sessionStorage` (base64-encoded), cleared when the tab closes. Never sent to `localStorage`, cookies, or any endpoint other than `POST /api/runs`. |
 | **Server** | Credentials exist as function parameters for one HTTP request — used for a single OAuth2 token call to Microsoft, then garbage-collected. Never returned in any API response. |
-| **Evidence** | All Graph API responses are scrubbed: fields matching `*secret*`, `*password*`, `*token*` are replaced with `[REDACTED]`. |
+| **Evidence** | All Graph API responses are scrubbed: fields matching `*secret*`, `*password*`, `*token*` are replaced with `[REDACTED]`. Evidence is never sent to the audit store. |
 | **API** | Optional `API_TOKEN` env var for Bearer auth. Rate limited to 1 concurrent run (HTTP 429). CORS same-origin by default. Path traversal protection on static file serving. |
 | **Container** | Non-root user (UID 1000). No secrets in the image. `.env` excluded via `.dockerignore`. |
+
+### Audit store (immudb)
+
+immudb runs as a sidecar container (see `docker-compose.yml`). It is
+append-only and cryptographically verifiable, which makes it a good fit
+for compliance evidence — but it also means anything written is
+permanent. To stay aligned with GDPR data-minimisation, the server
+operates on a strict allowlist defined in
+[`backend/immudb_store.py`](backend/immudb_store.py):
+
+**Stored** per run: `run_id`, `mode`, `outcome`, `duration_ms`,
+`timestamp`, `control_id`, `finding_state`, `summary`, and per
+criterion `name` / `passed` / `reason`. All values are either
+server-generated or structural constants from `evaluator.py`.
+
+**Never stored**: tenant id, client id, client secret, the full OSCAL
+`assessment-results` document, the sanitized evidence list, or any
+property fetched from Microsoft Graph at runtime.
+
+A defence-in-depth `_assert_no_pii` guard rejects any write whose
+allowlist values match email / GUID / IP / known-PII substring
+patterns. Persistence is best-effort: if immudb is unreachable the
+pipeline still returns 200 and only the histogram / persisted-runs
+list goes dark in the Audit trail drawer.
+
+To disable the audit store entirely, leave `IMMUDB_HOST` unset.
 
 ## API
 
 | Method | Route | Purpose |
 |---|---|---|
 | `GET` | `/api/health` | Liveness check |
+| `GET` | `/api/health/immudb` | Audit-store status |
 | `GET` | `/api/artifacts` | List static OSCAL artifacts |
 | `GET` | `/api/artifacts/{type}` | Full OSCAL document |
 | `POST` | `/api/runs` | Execute the pipeline |
-| `GET` | `/api/runs` | Recent run summaries (max 50) |
-| `GET` | `/api/runs/{run_id}` | Full run detail with OSCAL results |
-| `GET` | `/api/runs/{run_id}/bundle` | Download OSCAL zip bundle with SHA-256 hashes |
-| `DELETE` | `/api/runs` | Clear run history |
+| `POST` | `/api/bundle` | Download OSCAL zip bundle with SHA-256 hashes |
+| `GET` | `/api/runs` | Persisted run summaries from the audit store |
+| `GET` | `/api/runs/{run_id}` | Persisted run detail (allowlisted fields only) |
+| `GET` | `/api/metrics/outcomes-histogram` | Pass/fail counts bucketed by `hour` or `day` |
 
 ## Architecture
 
-- **Backend**: Python FastAPI — stateless, no database, single process
+- **Backend**: Python FastAPI — single process, optional immudb sidecar for the audit store
 - **Frontend**: React 19 + Vite + Tailwind CSS v4 + Framer Motion
-- **Container**: Single multi-stage Dockerfile (Node build + Python runtime)
+- **Container**: Multi-stage Dockerfile (Node build + Python runtime), plus an `immudb` service in `docker-compose.yml`
 
 ## Development
 

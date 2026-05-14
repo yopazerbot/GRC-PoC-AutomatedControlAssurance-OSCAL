@@ -1,10 +1,26 @@
 services:
+  immudb:
+    image: codenotary/immudb:1.9.5
+    restart: unless-stopped
+    volumes:
+      - immudb-data:/var/lib/immudb
+
   grc-oscal:
     build: .
+    depends_on:
+      - immudb
     ports:
       - "${PORT:-8000}:${PORT:-8000}"
     environment:
       - PORT=${PORT:-8000}
       - API_TOKEN=${API_TOKEN:-}
       - CORS_ORIGINS=${CORS_ORIGINS:-}
+      - IMMUDB_HOST=${IMMUDB_HOST:-immudb}
+      - IMMUDB_PORT=${IMMUDB_PORT:-3322}
+      - IMMUDB_USER=${IMMUDB_USER:-immudb}
+      - IMMUDB_PASSWORD=${IMMUDB_PASSWORD:-immudb}
+      - IMMUDB_DATABASE=${IMMUDB_DATABASE:-defaultdb}
     restart: unless-stopped
+
+volumes:
+  immudb-data:

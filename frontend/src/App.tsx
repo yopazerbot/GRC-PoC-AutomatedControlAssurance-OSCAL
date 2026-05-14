@@ -17,6 +17,7 @@ import DecisionPanel from "./components/DecisionPanel";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { PhaseControls } from "./components/PhaseControls";
 import SettingsDrawer from "./components/SettingsDrawer";
+import AuditTrailDrawer from "./components/AuditTrailDrawer";
 import LiveCredentialsPrompt from "./components/LiveCredentialsPrompt";
 
 const THEME_KEY = "grc-lab-theme";
@@ -34,6 +35,7 @@ export default function App() {
     return stored ? stored === "dark" : false;
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [auditOpen, setAuditOpen] = useState(false);
   const [credsPromptOpen, setCredsPromptOpen] = useState(false);
   const [selectedMode, setSelectedMode] = useState<Mode>("mock-pass");
   const [apiOk, setApiOk] = useState(true);
@@ -91,6 +93,7 @@ export default function App() {
     <div className="min-h-screen w-full flex flex-col lg:h-screen lg:w-screen lg:overflow-hidden">
       <Header
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenAuditTrail={() => setAuditOpen(true)}
         onToggleTheme={() => setIsDark((d) => !d)}
         isDark={isDark}
       />
@@ -139,6 +142,11 @@ export default function App() {
       />
 
       <SettingsDrawer open={settingsOpen} onClose={handleSettingsClose} />
+      <AuditTrailDrawer
+        open={auditOpen}
+        onClose={() => setAuditOpen(false)}
+        reloadKey={pipeline.runs.length}
+      />
       <LiveCredentialsPrompt
         open={credsPromptOpen}
         onOpenSettings={() => {

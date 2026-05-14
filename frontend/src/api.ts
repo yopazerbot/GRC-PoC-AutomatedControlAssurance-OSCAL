@@ -78,6 +78,63 @@ export async function fetchArtifact(type: string): Promise<Record<string, unknow
   return handleResponse(res);
 }
 
+export interface PersistedCriterion {
+  name: string;
+  passed: boolean;
+  reason: string;
+}
+
+export interface PersistedRun {
+  run_id: string;
+  mode: string;
+  outcome: string;
+  duration_ms: number;
+  timestamp: string;
+  control_id: string;
+  finding_state: string;
+  summary: string;
+  criteria?: PersistedCriterion[];
+}
+
+export interface HistogramBucket {
+  bucket: string;
+  pass: number;
+  fail: number;
+}
+
+export interface ImmudbHealth {
+  status: "ok" | "unavailable";
+  host?: string;
+  database?: string;
+  reason?: string;
+}
+
+export async function fetchImmudbHealth(): Promise<ImmudbHealth> {
+  const res = await fetch("/api/health/immudb", { headers: getHeaders() });
+  return handleResponse(res);
+}
+
+export async function fetchPersistedRuns(limit = 50): Promise<PersistedRun[]> {
+  const res = await fetch(`/api/runs?limit=${limit}`, { headers: getHeaders() });
+  return handleResponse(res);
+}
+
+export async function fetchPersistedRun(runId: string): Promise<PersistedRun> {
+  const res = await fetch(`/api/runs/${encodeURIComponent(runId)}`, { headers: getHeaders() });
+  return handleResponse(res);
+}
+
+export async function fetchOutcomesHistogram(
+  bucket: "hour" | "day" = "day",
+  limit = 30,
+): Promise<HistogramBucket[]> {
+  const res = await fetch(
+    `/api/metrics/outcomes-histogram?bucket=${bucket}&limit=${limit}`,
+    { headers: getHeaders() },
+  );
+  return handleResponse(res);
+}
+
 export async function triggerRun(mode: Mode, dryRun = false): Promise<RunDetail> {
   const body: Record<string, unknown> = { mode };
   if (mode === "live") {

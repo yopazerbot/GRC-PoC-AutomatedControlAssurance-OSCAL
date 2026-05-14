@@ -5,6 +5,7 @@ import io
 import json
 import os
 import zipfile
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
@@ -14,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
+import immudb_store
 from security import AuthMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
 from pipeline import execute_pipeline
 from collector import collect_live_dry_run
@@ -22,7 +24,14 @@ from slack_notify import notify_visit
 OSCAL_DIR = Path(__file__).parent / "oscal"
 STATIC_DIR = Path(__file__).parent / "static"
 
-app = FastAPI(title="GRC-OSCAL Demo", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    immudb_store.init()
+    yield
+
+
+app = FastAPI(title="GRC-OSCAL Demo", version="1.0.0", lifespan=lifespan)
 
 cors_origins = os.environ.get("CORS_ORIGINS", "")
 if cors_origins:
@@ -121,6 +130,8 @@ async def create_run(req: RunRequest, dry_run: bool = False):
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 
+    immudb_store.store_run(run)
+
     return {
         "run_id": run.run_id,
         "mode": run.mode,
@@ -131,6 +142,31 @@ async def create_run(req: RunRequest, dry_run: bool = False):
         "assessment_results": run.assessment_results,
         "sanitized_evidence": run.sanitized_evidence,
     }
+
+
+@app.get("/api/runs")
+async def list_runs(limit: int = 50):
+    return immudb_store.list_runs(limit)
+
+
+@app.get("/api/runs/{run_id}")
+async def get_run(run_id: str):
+    record = immudb_store.get_run(run_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Run not found in audit store.")
+    return record
+
+
+@app.get("/api/metrics/outcomes-histogram")
+async def outcomes_histogram(bucket: str = "day", limit: int = 30):
+    if bucket not in ("hour", "day"):
+        raise HTTPException(status_code=400, detail="bucket must be 'hour' or 'day'")
+    return immudb_store.histogram_outcomes(bucket, limit)
+
+
+@app.get("/api/health/immudb")
+async def immudb_health():
+    return immudb_store.health()
 
 
 @app.post("/api/bundle")
