@@ -396,15 +396,17 @@ def histogram_outcomes(bucket: str, limit: int = 30) -> list[dict]:
 
 
 def health() -> dict:
+    if not _config_present():
+        return {"status": "unavailable", "reason": "not configured"}
     client = _get_client()
     if client is None:
-        return {"status": "unavailable", "reason": "not configured or unreachable"}
-    try:
-        client.sqlQuery("SELECT 1;")
-        return {
-            "status": "ok",
-            "host": os.environ.get("IMMUDB_HOST"),
-            "database": os.environ.get("IMMUDB_DATABASE", "defaultdb"),
-        }
-    except Exception as e:
-        return {"status": "unavailable", "reason": str(e)}
+        return {"status": "unavailable", "reason": "unreachable"}
+    if not _init_done:
+        init()
+    if not _init_done:
+        return {"status": "unavailable", "reason": "schema initialisation failed"}
+    return {
+        "status": "ok",
+        "host": os.environ.get("IMMUDB_HOST"),
+        "database": os.environ.get("IMMUDB_DATABASE", "defaultdb"),
+    }
