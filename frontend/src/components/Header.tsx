@@ -1,14 +1,15 @@
-import { ShieldCheck, Settings, Sun, Moon } from "lucide-react";
+import { ShieldCheck, Settings, Sun, Moon, Database } from "lucide-react";
 import { GitHubMark } from "./GitHubMark";
 import { hasCredentials } from "../api";
 
 interface Props {
   onOpenSettings: () => void;
+  onOpenAuditTrail: () => void;
   onToggleTheme: () => void;
   isDark: boolean;
 }
 
-export default function Header({ onOpenSettings, onToggleTheme, isDark }: Props) {
+export default function Header({ onOpenSettings, onOpenAuditTrail, onToggleTheme, isDark }: Props) {
   const ready = hasCredentials();
 
   return (
@@ -46,6 +47,15 @@ export default function Header({ onOpenSettings, onToggleTheme, isDark }: Props)
         >
           <GitHubMark className="w-4 h-4" />
         </a>
+
+        <button
+          aria-label="Audit trail"
+          title="Audit trail (immudb)"
+          onClick={onOpenAuditTrail}
+          className="p-2 rounded-md border border-surface-border bg-surface-700 hover:bg-surface-600 transition-colors"
+        >
+          <Database className="w-4 h-4" />
+        </button>
 
         <button
           aria-label="Settings"
